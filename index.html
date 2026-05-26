@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>竞争洞察 Demo</title>
+<link rel="stylesheet" href="tailwind-built.css">
+<style>
+    :root{--bg:#f6f7fb;--bg-elevated:#ffffff;--border:#eaecf0;--border-strong:#d0d5dd;--text-primary:#0f172a;--text-secondary:#475569;--text-tertiary:#94a3b8;--accent:#ef4444;--accent-soft:#fef2f2;--accent-strong:#dc2626;--success:#10b981;--success-soft:#ecfdf5;--warning:#f59e0b;--warning-soft:#fffbeb;--info:#3b82f6;--info-soft:#eff6ff;}
+    *{-webkit-font-smoothing:antialiased;}
+    body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;}
+    .num{font-variant-numeric:tabular-nums;}
+    .card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,0.04);transition:all .2s ease;}
+    .card:hover{box-shadow:0 4px 16px rgba(16,24,40,0.06);border-color:var(--border-strong);}
+    .pulse-dot{animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .fade-in{animation:fadeIn .25s ease-out;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    input[type=range]{-webkit-appearance:none;background:transparent;}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:16px;width:16px;border-radius:50%;background:var(--accent);cursor:pointer;margin-top:-6px;box-shadow:0 2px 4px rgba(239,68,68,0.3);}
+    input[type=range]::-webkit-slider-runnable-track{width:100%;height:4px;cursor:pointer;background:#e8e8e8;border-radius:2px;}
+    .strat-card{border-radius:10px;background:#fff;border:1px solid var(--border);transition:all .15s;overflow:hidden;}
+    .strat-card:hover{border-color:var(--border-strong);box-shadow:0 4px 12px rgba(16,24,40,.06);}
+    .tab-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font-size:13px;font-weight:500;color:var(--text-secondary);border-radius:8px 8px 0 0;border:none;background:transparent;cursor:pointer;transition:all .15s;position:relative;}
+    .tab-btn:hover{color:var(--text-primary);background:#f8fafc;}
+    .tab-btn.active{color:var(--accent);background:var(--accent-soft);}
+    .tab-btn.active::after{content:"";position:absolute;bottom:-1px;left:8px;right:8px;height:2px;background:var(--accent);border-radius:2px;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+
+const {
+  useState,
+  useMemo
+} = React;
+const Icon = ({
+  d,
+  s = 2,
+  w = 'w-4 h-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  className: w,
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: s,
+  viewBox: "0 0 24 24"
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  d: d
+}));
+const IconTrendDown = () => /*#__PURE__*/React.createElement(Icon, {
+  w: "w-3.5 h-3.5",
+  d: "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+});
+const IconAlert = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+});
+const IconCheck = () => /*#__PURE__*/React.createElement(Icon, {
+  w: "w-3.5 h-3.5",
+  s: 3,
+  d: "M5 13l4 4L19 7"
+});
+const IconChevronDown = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M19 9l-7 7-7-7"
+});
+const IconChevronUp = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M5 15l7-7 7 7"
+});
+const IconQuestion = () => /*#__PURE__*/React.createElement(Icon, {
+  w: "w-3 h-3",
+  d: "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+});
+const IconCompass = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 00-.553-.894L15 7m0 13V7"
+});
+const IconMedal = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+});
+const IconTarget = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M13 10V3L4 14h7v7l9-11h-7z"
+});
+const IconSliders = () => /*#__PURE__*/React.createElement(Icon, {
+  d: "M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+});
+const PRODUCTS = [{
+  id: 3,
+  name: 'Apple AirPods Pro 第二代 USB-C版 主动降噪耳机',
+  image: 'img-airpods-pro2.png',
+  idCode: '6802831476',
+  myPrice: 1699,
+  priceScore: 35,
+  serviceScore: 30,
+  materialScore: 88,
+  competitors: [{
+    name: 'Apple AirPods Pro 2代 USB-C 降噪 白色',
+    shop: '拼多多百亿补贴',
+    image: 'img-airpods-pro2.png',
+    price: 1499,
+    tags: ['百亿补贴', '假一赔十', '买贵必赔'],
+    sales: '5,600+',
+    trend: -200
+  }, {
+    name: 'Apple AirPods Pro 2代 USB-C 官方质保',
+    shop: '京东Apple自营旗舰店',
+    image: 'img-airpods-pro2.png',
+    price: 1599,
+    tags: ['顺丰包邮', '官方质保', '15天退货'],
+    sales: '3,200+',
+    trend: -100
+  }, {
+    name: 'Apple AirPods Pro 2代 USB-C 刻字版',
+    shop: '天猫Apple官方旗舰店',
+    image: 'img-airpods-pro2.png',
+    price: 1699,
+    tags: ['12期免息', '刻字服务'],
+    sales: '4,100+',
+    trend: 0
+  }, {
+    name: 'Apple AirPods Pro 2代 USB-C 国行正品',
+    shop: '抖音Apple授权专营店',
+    image: 'img-airpods-pro2.png',
+    price: 1649,
+    tags: ['顺丰包邮', '7天无理由'],
+    sales: '1,800+',
+    trend: -50
+  }],
+  tracks: [{
+    name: '好价卡',
+    status: 'not-in',
+    statusText: '未入围',
+    condition: '支持【顺丰包邮】的同款中排名前20%',
+    myPrice: 1699,
+    thresholdPrice: 1599,
+    gap: 100,
+    trackLowest: 1499,
+    trafficMin: 24,
+    trafficMax: 44
+  }, {
+    name: '百亿补贴',
+    status: 'not-in',
+    statusText: '未入围',
+    condition: '同款中价格最低且降幅>=¥50',
+    myPrice: 1699,
+    thresholdPrice: 1649,
+    gap: 50,
+    trackLowest: 1499,
+    trafficMin: 68,
+    trafficMax: 96
+  }],
+  lossUsers: 118,
+  lossGMV: 28000,
+  paths: [{
+    id: 'absolute',
+    title: '降价5元，超越3个同款竞品',
+    subtitle: '降至 ¥1,694，预计流量+15%',
+    trackName: '好价卡·同款低价',
+    peerCount: 7,
+    entitlements: null,
+    strategyType: '无权益',
+    competitor: {
+      name: 'Apple AirPods Pro 2代 USB-C 主动降噪',
+      price: 1499,
+      shop: '拼多多百亿补贴',
+      image: 'img-airpods-pro2.png'
+    }
+  }, {
+    id: 'absolute2',
+    title: '降价8元，超越9个同款竞品',
+    subtitle: '降至 ¥1,691，预计流量+28%',
+    trackName: '好价卡·同款低价',
+    peerCount: 7,
+    entitlements: null,
+    strategyType: '无权益',
+    competitor: {
+      name: 'Apple AirPods Pro 2代 USB-C 官方质保',
+      price: 1599,
+      shop: '京东Apple自营旗舰店',
+      image: 'img-airpods-pro2.png'
+    }
+  }, {
+    id: 'absolute3',
+    title: '降价11.2元，超越15个同款竞品',
+    subtitle: '降至 ¥1,687.8，预计流量+45%',
+    trackName: '好价卡·同款低价',
+    peerCount: 7,
+    entitlements: null,
+    strategyType: '无权益',
+    competitor: {
+      name: 'Apple AirPods Pro 2代 USB-C 国行正品',
+      price: 1649,
+      shop: '抖音Apple授权专营店',
+      image: 'img-airpods-pro2.png'
+    }
+  }]
+}, {
+  id: 2,
+  name: 'MacBook Pro M3 14英寸 16+512G 深空黑',
+  image: 'img-macbookpro-m3.png',
+  idCode: '7835452108',
+  myPrice: 14499,
+  priceScore: 22,
+  serviceScore: 78,
+  materialScore: 65,
+  competitors: [{
+    name: 'Apple MacBook Pro 14英寸 M3 16+512G 银色',
+    shop: '京东Apple自营旗舰店',
+    image: 'img-macbookpro-m3.png',
+    price: 13990,
+    tags: ['顺丰包邮', '官方质保', '买贵必赔'],
+    sales: '2,100+',
+    trend: -509
+  }, {
+    name: 'Apple MacBook Pro 14英寸 M3 深空黑 国行',
+    shop: '顺电数码旗舰店',
+    image: 'img-macbookpro-m3.png',
+    price: 14199,
+    tags: ['顺丰包邮', '12期免息', '15天退货'],
+    sales: '560',
+    trend: -300
+  }, {
+    name: 'Apple MacBook Pro 14英寸 M3 教育优惠版',
+    shop: '苏宁Apple旗舰店',
+    image: 'img-macbookpro-m3.png',
+    price: 14299,
+    tags: ['6期免息'],
+    sales: '320',
+    trend: -200
+  }, {
+    name: 'Apple MacBook Pro 14英寸 M3 官方标配',
+    shop: '天猫Apple官方旗舰店',
+    image: 'img-macbookpro-m3.png',
+    price: 14499,
+    tags: ['12期免息', '教育优惠'],
+    sales: '4,500+',
+    trend: 0
+  }],
+  tracks: [{
+    name: '好价卡',
+    status: 'not-in',
+    statusText: '未入围',
+    condition: '支持【顺丰包邮】的同款中排名前20%',
+    myPrice: 14499,
+    thresholdPrice: 14199,
+    gap: 300,
+    trackLowest: 13990,
+    trafficMin: 24,
+    trafficMax: 44
+  }, {
+    name: '教育优惠',
+    status: 'in',
+    statusText: '已入围',
+    condition: '支持教育认证的同款中排名前25%',
+    myPrice: 14499,
+    thresholdPrice: 14499,
+    gap: 0,
+    trackLowest: 13990,
+    trafficMin: 15,
+    trafficMax: 30,
+    rankInTrack: 2,
+    totalInTrack: 8
+  }],
+  lossUsers: 312,
+  lossGMV: 125000,
+  paths: [{
+    id: 'track',
+    title: '降价10元，享受好价卡权益',
+    subtitle: '降至 ¥14,489，预计流量+27%',
+    trackName: '好价卡·百亿补贴',
+    peerCount: 4,
+    entitlements: '标签+搜索氛围标+筛选tab入口',
+    strategyType: '多权益',
+    competitor: {
+      name: 'Apple MacBook Pro 14英寸 M3 顺丰包邮',
+      price: 14199,
+      shop: '顺电数码旗舰店',
+      image: 'img-macbookpro-m3.png'
+    }
+  }, {
+    id: 'combo',
+    title: '降价16元，同时享受好价卡+百亿补贴双重权益，流量预计+45%',
+    subtitle: '降至 ¥14,483，预计流量+45%',
+    trackName: '好价卡·百亿补贴',
+    peerCount: 5,
+    entitlements: '标签+搜索氛围标+筛选tab入口+详情页浮标',
+    strategyType: '多权益',
+    competitor: {
+      name: 'Apple MacBook Pro 14英寸 M3芯片 16+512G',
+      price: 13990,
+      shop: '京东Apple自营旗舰店',
+      image: 'img-macbookpro-m3.png'
+    }
+  }]
+}, {
+  id: 1,
+  name: 'Apple iPhone 15 Pro Max 256G 钛金属原色 5G手机',
+  image: 'img-iphone15promax.png',
+  idCode: '6802831475',
+  myPrice: 9199,
+  priceScore: 28,
+  serviceScore: 45,
+  materialScore: 82,
+  competitors: [{
+    name: 'Apple iPhone 15 Pro Max 256GB 蓝色钛金属',
+    shop: '顺电数码旗舰店',
+    image: 'img-iphone15promax.png',
+    price: 9099,
+    tags: ['顺丰包邮', '12期免息', '买贵必赔'],
+    sales: '1,200+',
+    trend: -100
+  }, {
+    name: 'Apple iPhone 15 Pro Max 256GB 白色钛金属',
+    shop: '迪信通手机专营店',
+    image: 'img-iphone15promax.png',
+    price: 9149,
+    tags: ['顺丰包邮', '24期免息', '15天退货'],
+    sales: '890',
+    trend: -50
+  }, {
+    name: 'Apple iPhone 15 Pro Max 256GB 官方质保版',
+    shop: '京东Apple自营旗舰店',
+    image: 'img-iphone15promax.png',
+    price: 9199,
+    tags: ['顺丰包邮', '官方质保'],
+    sales: '3,400+',
+    trend: 0
+  }, {
+    name: 'Apple iPhone 15 Pro Max 256GB 国行正品',
+    shop: '天猫Apple官方旗舰店',
+    image: 'img-iphone15promax.png',
+    price: 9299,
+    tags: ['12期免息', '官方质保'],
+    sales: '8,200+',
+    trend: 100
+  }],
+  tracks: [{
+    name: '好价卡',
+    status: 'not-in',
+    statusText: '未入围',
+    condition: '支持【顺丰包邮】的同款中排名前20%',
+    myPrice: 9199,
+    thresholdPrice: 9099,
+    gap: 100,
+    trackLowest: 8999,
+    trafficMin: 24,
+    trafficMax: 44
+  }, {
+    name: '百亿补贴',
+    status: 'not-in',
+    statusText: '未入围',
+    condition: '同款中价格最低且降幅>=¥50',
+    myPrice: 9199,
+    thresholdPrice: 9149,
+    gap: 50,
+    trackLowest: 9099,
+    trafficMin: 68,
+    trafficMax: 96
+  }, {
+    name: '分期免息',
+    status: 'in',
+    statusText: '已入围',
+    condition: '支持分期免息的同款中排名前30%',
+    myPrice: 9199,
+    thresholdPrice: 9299,
+    gap: 0,
+    trackLowest: 9099,
+    trafficMin: 18,
+    trafficMax: 35,
+    rankInTrack: 3,
+    totalInTrack: 12
+  }, {
+    name: '以旧换新',
+    status: 'not-in',
+    statusText: '未入围',
+    condition: '支持以旧换新的同款中排名前30%',
+    myPrice: 9199,
+    thresholdPrice: 8999,
+    gap: 200,
+    trackLowest: 8799,
+    trafficMin: 12,
+    trafficMax: 22
+  }],
+  lossUsers: 476,
+  lossGMV: 82000,
+  paths: [{
+    id: 'track',
+    title: '降价1.5元，流量预计+12%',
+    subtitle: '降至 ¥9,197.5，预计流量+12%',
+    trackName: '好价卡·同款低价',
+    peerCount: 6,
+    entitlements: '标签+搜索氛围标+筛选tab入口',
+    strategyType: '入围单权益',
+    competitor: {
+      name: 'Apple iPhone 15 Pro Max 256GB 原色钛金属',
+      price: 9099,
+      shop: '顺电数码旗舰店',
+      image: 'img-iphone15promax.png'
+    }
+  }]
+}, {
+  id: 4,
+  name: 'Apple iPad Pro 11英寸 M4芯片 256G WLAN版',
+  image: 'img-ipad-pro-m4.png',
+  idCode: '4421987603',
+  myPrice: 8599,
+  priceScore: 55,
+  serviceScore: 62,
+  materialScore: 70,
+  competitors: [{
+    name: 'Apple iPad Pro 11英寸 M4 256G 官方质保',
+    shop: '京东Apple自营旗舰店',
+    image: 'img-ipad-pro-m4.png',
+    price: 8588,
+    tags: ['顺丰包邮', '官方质保'],
+    sales: '1,500+',
+    trend: -11
+  }, {
+    name: 'Apple iPad Pro 11英寸 M4 256G 教育优惠',
+    shop: '天猫Apple官方旗舰店',
+    image: 'img-ipad-pro-m4.png',
+    price: 8599,
+    tags: ['12期免息', '教育优惠'],
+    sales: '2,300+',
+    trend: 0
+  }, {
+    name: 'Apple iPad Pro 11英寸 M4 256G 国行',
+    shop: '顺电数码旗舰店',
+    image: 'img-ipad-pro-m4.png',
+    price: 8629,
+    tags: ['顺丰包邮'],
+    sales: '180',
+    trend: 30
+  }],
+  tracks: [{
+    name: '好价卡',
+    status: 'almost',
+    statusText: '只差一步',
+    condition: '支持【顺丰包邮】的同款中排名前20%',
+    myPrice: 8599,
+    thresholdPrice: 8588,
+    gap: 11,
+    trackLowest: 8588,
+    trafficMin: 24,
+    trafficMax: 44
+  }],
+  lossUsers: 46,
+  lossGMV: 15000,
+  paths: [{
+    id: 'channel',
+    title: '降价5元，在顺丰包邮赛道中排名第二位',
+    subtitle: '降至 ¥8,594，预计流量+18%',
+    trackName: '好价卡·顺丰包邮',
+    peerCount: 2,
+    entitlements: null,
+    strategyType: '进赛道',
+    competitor: {
+      name: 'Apple iPad Pro 11英寸 M4 教育优惠',
+      price: 8599,
+      shop: '天猫Apple官方旗舰店',
+      image: 'img-ipad-pro-m4.png'
+    }
+  }]
+}];
+const TABS = [];
+function PriceAxis({
+  product
+}) {
+  const prices = product.competitors.map(c => c.price);
+  const lowest = Math.min(...prices);
+  const highest = Math.max(...prices, product.myPrice);
+  const avg = Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+  const my = product.myPrice;
+  const range = highest - lowest || 1;
+  const lowestPct = 100;
+  const avgPct = ((avg - lowest) / range * 60 + 40).toFixed(0);
+  const myPct = ((my - lowest) / range * 60 + 40).toFixed(0);
+  function Row(label, value, pct, color, isMe) {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-1.5"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] w-14 flex-shrink-0 " + (isMe ? "font-bold text-gray-900" : "text-gray-500")
+    }, label), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "h-full rounded-full",
+      style: { width: pct + '%', background: color }
+    })), /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] num font-bold flex-shrink-0 w-12 text-right " + (isMe ? "text-red-500" : "text-gray-600")
+    }, '\xA5' + value.toLocaleString()), isMe && /*#__PURE__*/React.createElement("span", {
+      className: "text-[9px] text-gray-400 flex-shrink-0"
+    }, "\u2190 \u4F60"));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mt-2 space-y-1"
+  }, Row('\u540C\u6B3E\u6700\u4F4E', lowest, lowestPct, '#10b981', false), Row('\u540C\u6B3E\u5747\u4EF7', avg, avgPct, '#9ca3af', false), Row('\u672C\u5E97\u5546\u54C1', my, myPct, '#ef4444', true));
+}
+function CompactPathCard({
+  path,
+  product
+}) {
+  const btnText = path.id.startsWith('absolute') ? '去降价' : path.id === 'track' ? '设权益' : path.id === 'channel' ? '去配置' : path.id === 'combo' ? '设权益' : '去配置';
+  const hasEntitlements = path.entitlements;
+  const [showAction, setShowAction] = useState(false);
+  const [actionDone, setActionDone] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [priceInput, setPriceInput] = useState(path.competitor ? String(path.competitor.price) : '');
+  const [checkedEntitlements, setCheckedEntitlements] = useState({});
+  function handleConfirm() {
+    setShowAction(false);
+    setActionDone(true);
+  }
+  var cardText = path.title;
+  var stratTag = path.id === 'track' ? '好价卡' : path.id === 'combo' ? '好价卡' : null;
+  var trafficText = path.subtitle && path.subtitle.match(/流量[+\-]\d+%/) ? path.subtitle.match(/流量[+\-]\d+%/)[0] : null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "strat-card flex flex-col relative h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-2.5 py-1.5 border-b border-gray-100 flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1"
+  }, stratTag && /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded px-1 py-0.5",
+    style: { lineHeight: '1' }
+  }, stratTag), path.trackName.indexOf('\u00B7') > -1 && /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded px-1 py-0.5",
+    style: { lineHeight: '1' }
+  }, path.trackName.split('\u00B7')[1])), /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] text-gray-400"
+  }, path.peerCount, "\u4E2A\u540C\u884C\u7ADE\u4E89\u4E2D")), /*#__PURE__*/React.createElement("div", {
+    className: "p-2.5 flex flex-col flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-semibold text-gray-800 leading-snug mb-1"
+  }, cardText), trafficText && /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-green-600 font-medium mb-2"
+  }, "\u2191 \u9884\u8BA1", trafficText), /*#__PURE__*/React.createElement("div", {
+    className: "mt-auto flex items-center justify-end"
+  }, actionDone ? /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] px-2 py-0.5 rounded text-green-700 font-semibold bg-green-50 border border-green-200"
+  }, "\u2713 \u5DF2\u8BBE\u7F6E") : /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAction(true);
+    },
+    className: "text-[10px] px-2.5 py-1 rounded-md text-white font-semibold bg-gray-900 hover:bg-gray-800 transition-colors"
+  }, btnText))), showAction && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 z-10 bg-white rounded-xl border border-gray-200 shadow-lg flex flex-col fade-in",
+    style: {
+      margin: '-1px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-3 py-2 border-b border-gray-100 flex items-center justify-between bg-gray-50 rounded-t-xl"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-semibold text-gray-800"
+  }, btnText === '去降价' ? '调整价格' : btnText === '设权益' ? '设置权益' : '组合配置'), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAction(false);
+    },
+    className: "text-gray-400 hover:text-gray-600"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-3.5 h-3.5",
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    d: "M6 18L18 6M6 6l12 12"
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 flex-1 overflow-y-auto"
+  }, path.id === 'absolute' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 mb-1.5"
+  }, "\u5F53\u524D\u4EF7\u683C ", /*#__PURE__*/React.createElement("span", {
+    className: "num font-bold text-gray-900"
+  }, "\xA5", product.myPrice.toLocaleString())), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 mb-2"
+  }, "\u5EFA\u8BAE\u8C03\u81F3 ", /*#__PURE__*/React.createElement("span", {
+    className: "num font-bold text-red-500"
+  }, "\xA5", path.competitor ? path.competitor.price.toLocaleString() : '')), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 mb-1"
+  }, "\u8C03\u6574\u540E\u4EF7\u683C"), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: priceInput,
+    onChange: function (e) {
+      setPriceInput(e.target.value);
+    },
+    className: "w-full text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400 num mb-2"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-green-600 bg-green-50 rounded px-2 py-1"
+  }, path.subtitle)), path.id === 'track' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 mb-2"
+  }, "\u9009\u62E9\u8981\u5F00\u901A\u7684\u6743\u76CA"), ['顺丰包邮', '12期免息', '24期免息', '7天无理由', '运费险'].map(function (ent) {
+    return /*#__PURE__*/React.createElement("label", {
+      key: ent,
+      className: "flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer"
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: !!checkedEntitlements[ent],
+      onChange: function () {
+        var n = Object.assign({}, checkedEntitlements);
+        n[ent] = !n[ent];
+        setCheckedEntitlements(n);
+      },
+      className: "w-3.5 h-3.5 text-blue-500 rounded border-gray-300"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] text-gray-700"
+    }, ent));
+  })), path.id === 'combo' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 mb-2"
+  }, "\u7EC4\u5408\u7B56\u7565\u914D\u7F6E"), ['顺丰包邮', '12期免息', '百亿补贴', '买贵必赔'].map(function (ent) {
+    return /*#__PURE__*/React.createElement("label", {
+      key: ent,
+      className: "flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer"
+    }, /*#__PURE__*/React.createElement("input", {
+      type: "checkbox",
+      checked: !!checkedEntitlements[ent],
+      onChange: function () {
+        var n = Object.assign({}, checkedEntitlements);
+        n[ent] = !n[ent];
+        setCheckedEntitlements(n);
+      },
+      className: "w-3.5 h-3.5 text-blue-500 rounded border-gray-300"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "text-[11px] text-gray-700"
+    }, ent));
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "px-3 py-2 border-t border-gray-100 flex justify-end gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAction(false);
+    },
+    className: "text-[11px] px-3 py-1 rounded-md text-gray-600 border border-gray-200 hover:bg-gray-50"
+  }, "\u53D6\u6D88"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleConfirm,
+    className: "text-[11px] px-3 py-1 rounded-md text-white font-semibold bg-gray-900 hover:bg-gray-800"
+  }, "\u786E\u8BA4"))), actionDone && /*#__PURE__*/React.createElement("div", {
+    className: "mt-1 px-2 py-1.5 rounded-lg bg-green-50 border border-green-100 fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-green-700 flex items-start gap-1"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-3 h-3 flex-shrink-0 mt-0.5",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.5",
+    viewBox: "0 0 24 24"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    d: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+  })), /*#__PURE__*/React.createElement("span", null, "\u8BBE\u7F6E\u5DF2\u751F\u6548\uFF0C\u5EFA\u8BAE24\u5C0F\u65F6\u540E\u5173\u6CE8\u6D41\u91CF\u53D8\u5316\u4E0E\u8D5B\u9053\u6392\u540D\u63D0\u5347\u6548\u679C"))), path.competitor && /*#__PURE__*/React.createElement("div", {
+    className: "border-t border-gray-100 pt-2 mt-auto"
+  }, !showDetail && /*#__PURE__*/React.createElement("div", {
+    className: "relative"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[7px] font-bold text-white bg-red-500 rounded px-0.5 absolute",
+    style: { lineHeight: '12px', top: '4px', left: '0px', zIndex: 1 }
+  }, "VS"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 px-1.5 py-1 bg-gray-50 rounded-md"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: path.competitor.image,
+    alt: "",
+    className: "w-7 h-7 rounded bg-gray-100 object-cover flex-shrink-0",
+    onError: function (e) { e.target.style.display = 'none'; }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-700 leading-tight line-clamp-2"
+  }, path.competitor.name), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-400 mt-0.5"
+  }, path.competitor.shop)), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-bold text-gray-900 flex-shrink-0 num"
+  }, "\xA5", path.competitor.price.toLocaleString()))), showDetail && product && /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5 fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 px-1.5 py-1.5 rounded-md bg-orange-50 border border-orange-200"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] font-bold text-white rounded px-1 py-0.5 flex-shrink-0",
+    style: { background: '#f97316', lineHeight: '1' }
+  }, "\u672C"), product.image && /*#__PURE__*/React.createElement("img", {
+    src: product.image,
+    alt: "",
+    className: "w-7 h-7 rounded bg-white object-cover flex-shrink-0",
+    onError: function (e) { e.target.style.display = 'none'; }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-800 leading-tight line-clamp-1 font-semibold"
+  }, product.name)), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-bold text-orange-600 flex-shrink-0 num"
+  }, '\xA5' + product.myPrice.toLocaleString())), product.competitors.map(function (c, ci) {
+    var diff = c.price - product.myPrice;
+    var isVs = c.name === path.competitor.name && c.price === path.competitor.price;
+    return /*#__PURE__*/React.createElement("div", {
+      key: ci,
+      className: "flex items-center gap-2 px-1.5 py-1.5 bg-white rounded-md border border-gray-100 relative"
+    }, isVs && /*#__PURE__*/React.createElement("span", {
+      className: "text-[7px] font-bold text-white bg-red-500 rounded px-0.5 absolute",
+      style: { lineHeight: '12px', top: '4px', left: '0px', zIndex: 1 }
+    }, "VS"), c.image && /*#__PURE__*/React.createElement("img", {
+      src: c.image,
+      alt: "",
+      className: "w-7 h-7 rounded bg-gray-100 object-cover flex-shrink-0",
+      onError: function (e) { e.target.style.display = 'none'; }
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 min-w-0"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[10px] text-gray-700 leading-tight line-clamp-1"
+    }, c.name), /*#__PURE__*/React.createElement("div", {
+      className: "text-[9px] text-gray-400 mt-0.5"
+    }, c.shop)), /*#__PURE__*/React.createElement("div", {
+      className: "text-right flex-shrink-0"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[10px] font-bold text-gray-900 num"
+    }, '\xA5' + c.price.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+      className: 'text-[9px] num font-medium ' + (diff < 0 ? 'text-green-600' : diff > 0 ? 'text-red-500' : 'text-gray-400')
+    }, diff < 0 ? '\u4F4E\xA5' + Math.abs(diff) : diff > 0 ? '\u9AD8\xA5' + diff : '\u540C\u4EF7')));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mt-1 text-right"
+  }, /*#__PURE__*/React.createElement("span", {
+    onClick: function(e) { e.stopPropagation(); setShowDetail(!showDetail); },
+    className: "text-[10px] text-blue-500 cursor-pointer hover:text-blue-700 hover:underline"
+  }, showDetail ? '\u6536\u8D77' : '\u67E5\u770B\u66F4\u591A'))));
+}
+function TrackCardSmall({
+  track
+}) {
+  const isIn = track.status === 'in';
+  const isAlmost = track.status === 'almost';
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-gray-50 rounded-lg p-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-1.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-medium text-gray-900"
+  }, track.name), /*#__PURE__*/React.createElement("span", {
+    className: `text-xs px-1.5 py-0.5 rounded-full text-white ${isIn ? 'bg-green-500' : isAlmost ? 'bg-blue-500' : 'bg-red-500'}`
+  }, track.statusText)), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mb-2"
+  }, track.condition), !isIn && /*#__PURE__*/React.createElement("div", {
+    className: "mb-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between text-xs mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400"
+  }, "\u8DDD\u5165\u56F4"), /*#__PURE__*/React.createElement("span", {
+    className: `font-medium ${isAlmost ? 'text-blue-600' : 'text-red-500'}`
+  }, isAlmost ? `只差¥${track.gap}` : `还差¥${track.gap}`)), /*#__PURE__*/React.createElement("div", {
+    className: "h-1.5 bg-gray-200 rounded-full overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `h-full rounded-full ${isAlmost ? 'bg-blue-500' : 'bg-red-400'}`,
+    style: {
+      width: `${Math.max(15, 100 - track.gap / track.myPrice * 600)}%`
+    }
+  }))), track.rankInTrack && /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-500 mb-1"
+  }, "\u8D5B\u9053\u6392\u540D\uFF1A\u7B2C", track.rankInTrack, "\u540D / \u5171", track.totalInTrack, "\u4E2A"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mt-1.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-gray-500"
+  }, "\u6D41\u91CF ", /*#__PURE__*/React.createElement("span", {
+    className: "text-green-600 font-medium"
+  }, "+", track.trafficMin, "% ~ +", track.trafficMax, "%")), !isIn ? /*#__PURE__*/React.createElement("button", {
+    className: `text-xs px-2.5 py-1 rounded-lg text-white font-medium ${isAlmost ? 'bg-blue-500 hover:bg-blue-600' : 'bg-red-500 hover:bg-red-600'}`
+  }, "\u964D\xA5", track.gap, "\u5165\u56F4") : /*#__PURE__*/React.createElement("button", {
+    className: "text-xs px-2.5 py-1 rounded-lg text-white font-medium bg-green-500 hover:bg-green-600"
+  }, "\u51B2TOP1")));
+}
+function PathCard({
+  path,
+  isRecommended
+}) {
+  const colorMap = {
+    absolute: {
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      badge: 'bg-red-500',
+      btn: 'bg-red-500 hover:bg-red-600'
+    },
+    track: {
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      badge: 'bg-blue-500',
+      btn: 'bg-blue-500 hover:bg-blue-600'
+    },
+    combo: {
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      badge: 'bg-purple-500',
+      btn: 'bg-purple-500 hover:bg-purple-600'
+    }
+  };
+  const c = colorMap[path.id] || colorMap.absolute;
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-xl p-4 border-2 transition-all ${isRecommended ? `${c.bg} ${c.border}` : 'bg-white border-gray-100'}`
+  }, isRecommended && /*#__PURE__*/React.createElement("div", {
+    className: "inline-block mb-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `${c.badge} text-white text-xs px-2 py-0.5 rounded-full font-medium`
+  }, "\u63A8\u8350")), /*#__PURE__*/React.createElement("div", {
+    className: "mb-2"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "font-semibold text-gray-900 text-sm"
+  }, path.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500 mt-0.5"
+  }, path.subtitle)), path.entitlements && /*#__PURE__*/React.createElement("div", {
+    className: "mb-3 px-2 py-1.5 bg-white rounded-lg border border-gray-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400"
+  }, "\u6743\u76CA\u5C55\u793A"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-medium text-gray-700 mt-0.5"
+  }, path.entitlements)), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `flex-1 py-1.5 text-white text-sm rounded-lg font-medium transition-colors ${c.btn}`
+  }, path.id === 'absolute' ? '一键改价' : path.id === 'track' ? '设置权益' : '组合设置'), /*#__PURE__*/React.createElement("button", {
+    className: "px-3 py-1.5 text-gray-600 text-sm rounded-lg border border-gray-200 hover:bg-gray-50"
+  }, "\u6A21\u62DF")));
+}
+function PriceSimulator({
+  product
+}) {
+  const minVal = Math.min(product.myPrice, ...product.competitors.map(c => c.price)) - 200;
+  const [value, setValue] = useState(Math.max(minVal, product.myPrice - 50));
+  const maxPrice = product.myPrice;
+  const sortedComp = [...product.competitors].sort((a, b) => a.price - b.price);
+  const simulatedRank = useMemo(() => {
+    const all = [...sortedComp.map(c => c.price), value].sort((a, b) => a - b);
+    return all.indexOf(value) + 1;
+  }, [value, sortedComp]);
+  const trafficGain = useMemo(() => Math.round((product.myPrice - value) / product.myPrice * 120 + 5), [value, product.myPrice]);
+  const monthly = useMemo(() => {
+    const drop = product.myPrice - value;
+    const loss = -drop * 120;
+    const gmvUp = Math.round(trafficGain * 0.25 * value);
+    const net = loss + gmvUp * 0.12;
+    return {
+      loss,
+      gmvUp,
+      net
+    };
+  }, [value, product.myPrice, trafficGain]);
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4 mb-4"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-gray-400"
+  }, "\xA5", minVal), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: minVal,
+    max: maxPrice,
+    value: value,
+    onChange: e => setValue(Number(e.target.value)),
+    className: "flex-1"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm text-gray-400"
+  }, "\xA5", maxPrice)), /*#__PURE__*/React.createElement("div", {
+    className: "bg-gray-50 rounded-lg p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-500"
+  }, "\xA5", product.myPrice.toLocaleString(), " "), /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-300"
+  }, '->'), /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-red-500 ml-1"
+  }, "\xA5", value.toLocaleString()), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs px-1.5 py-0.5 bg-red-100 text-red-600 rounded-full ml-2"
+  }, "\u964D\xA5", product.myPrice - value))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-4 gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center p-2 bg-white rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400"
+  }, "\u9884\u8BA1\u6392\u540D"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-gray-900 mt-1"
+  }, "\u7B2C", simulatedRank, "\u540D")), /*#__PURE__*/React.createElement("div", {
+    className: "text-center p-2 bg-white rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400"
+  }, "\u6D41\u91CF\u53D8\u5316"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-green-600 mt-1"
+  }, "+", trafficGain, "%")), /*#__PURE__*/React.createElement("div", {
+    className: "text-center p-2 bg-white rounded-lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400"
+  }, "\u5229\u6DA6\u5F71\u54CD"), /*#__PURE__*/React.createElement("div", {
+    className: `text-sm font-bold mt-1 ${monthly.loss < 0 ? 'text-red-500' : 'text-green-600'}`
+  }, monthly.loss < 0 ? '' : '+', monthly.loss.toLocaleString())), /*#__PURE__*/React.createElement("div", {
+    className: "text-center p-2 bg-green-50 rounded-lg border border-green-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-green-600"
+  }, "\u9884\u8BA1\u51C0\u6536\u76CA/\u6708"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-green-700 mt-1"
+  }, monthly.net >= 0 ? '+' : '', Math.round(monthly.net).toLocaleString())))), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400 mt-2 flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement(IconQuestion, null), "\u57FA\u4E8E\u8FD130\u5929\u540C\u54C1\u7C7B\u5546\u5BB6\u6D41\u91CF\u4E2D\u4F4D\u6570\u5BF9\u6BD4\u4F30\u7B97"));
+}
+function DetailPanel({
+  product,
+  activeTab
+}) {
+  const [expandedComp, setExpandedComp] = useState(null);
+  if (activeTab === 'tracking') {
+    var timeLabels = ['2小时前', '5小时前', '1天前', '3小时前'];
+    return /*#__PURE__*/React.createElement("div", {
+      className: "fade-in space-y-2"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between mb-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-xs font-semibold text-gray-700"
+    }, "\u8FFD\u8E2A\u52A8\u6001 ", /*#__PURE__*/React.createElement("span", {
+      className: "text-gray-400 font-normal"
+    }, "\u6700\u8FD17\u5929")), /*#__PURE__*/React.createElement("span", {
+      className: "text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"
+    }, product.competitors.length, "\u6761")), product.competitors.map(function (c, i) {
+      var diff = c.price - product.myPrice;
+      var label = c.trend < 0 ? '降价' : c.trend > 0 ? '涨价' : '持平';
+      var cls = c.trend < 0 ? 'bg-red-50 text-red-600' : c.trend > 0 ? 'bg-orange-50 text-orange-600' : 'bg-gray-100 text-gray-500';
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        className: "p-3 rounded-lg border border-gray-100 bg-white hover:border-gray-200 transition-all"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center justify-between mb-1"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-1.5"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: 'text-xs px-1.5 py-0.5 rounded-full font-medium ' + cls
+      }, label), /*#__PURE__*/React.createElement("span", {
+        className: "text-[10px] text-gray-300 num"
+      }, timeLabels[i] || '1天前')), /*#__PURE__*/React.createElement("span", {
+        className: 'text-xs px-2 py-0.5 rounded-full font-medium ' + (diff < 0 ? 'bg-green-50 text-green-600' : diff > 0 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500')
+      }, diff > 0 ? '贵' + diff : diff < 0 ? '低' + Math.abs(diff) : '同价')), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-2 mt-1"
+      }, c.image && /*#__PURE__*/React.createElement("img", {
+        src: c.image,
+        alt: "",
+        className: "w-8 h-8 rounded bg-gray-100 object-cover flex-shrink-0",
+        onError: function (e) {
+          e.target.style.display = 'none';
+        }
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "flex-1 min-w-0"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-xs text-gray-800 font-medium line-clamp-1"
+      }, c.name), /*#__PURE__*/React.createElement("div", {
+        className: "text-[10px] text-gray-400 mt-0.5"
+      }, c.shop))), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-2 mt-1"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-xs font-bold text-gray-900 num"
+      }, '¥' + c.price.toLocaleString()), c.trend !== 0 && /*#__PURE__*/React.createElement("span", {
+        className: 'text-[11px] num font-semibold ' + (c.trend < 0 ? 'text-green-600' : 'text-red-500')
+      }, (c.trend > 0 ? '+' : '') + c.trend), c.tags.slice(0, 2).map(function (t, j) {
+        return /*#__PURE__*/React.createElement("span", {
+          key: j,
+          className: "text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded"
+        }, t);
+      })));
+    }));
+  }
+  if (activeTab === 'competitors') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "fade-in space-y-2"
+    }, product.competitors.map((c, i) => {
+      const diff = c.price - product.myPrice;
+      const isExpanded = expandedComp === i;
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        className: "rounded-lg border border-gray-200 overflow-hidden"
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: () => setExpandedComp(isExpanded ? null : i),
+        className: "w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 transition-colors"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-2 text-sm"
+      }, c.image && /*#__PURE__*/React.createElement("img", {
+        src: c.image,
+        alt: "",
+        className: "w-6 h-6 rounded bg-gray-100 object-cover flex-shrink-0",
+        onError: e => {
+          e.target.style.display = 'none';
+        }
+      }), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium text-gray-900 line-clamp-1"
+      }, c.name)), /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-3"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-sm font-bold text-gray-900 num"
+      }, "\xA5", product.myPrice.toLocaleString()), /*#__PURE__*/React.createElement("span", {
+        className: "text-gray-300"
+      }, "vs"), /*#__PURE__*/React.createElement("span", {
+        className: "text-sm font-bold text-gray-900 num"
+      }, "\xA5", c.price.toLocaleString()), /*#__PURE__*/React.createElement("span", {
+        className: `text-xs px-2 py-0.5 rounded-full font-medium ${diff > 0 ? 'bg-red-100 text-red-600' : diff < 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`
+      }, diff > 0 ? `贵¥${diff}` : diff < 0 ? `低¥${Math.abs(diff)}` : '同价'), isExpanded ? /*#__PURE__*/React.createElement(IconChevronUp, null) : /*#__PURE__*/React.createElement(IconChevronDown, null))), isExpanded && /*#__PURE__*/React.createElement("div", {
+        className: "border-t border-gray-100 px-4 py-3 bg-gray-50 fade-in"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "grid grid-cols-2 gap-4"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "bg-white rounded-lg p-3 border border-gray-100"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-xs text-gray-400 mb-2"
+      }, "\u672C\u5E97"), /*#__PURE__*/React.createElement("div", {
+        className: "text-lg font-bold text-gray-900 mb-2 num"
+      }, "\xA5", product.myPrice.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+        className: "space-y-1.5"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex justify-between text-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-gray-500"
+      }, "\u4EF7\u683C\u5F97\u5206"), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium"
+      }, product.priceScore, "\u5206")), /*#__PURE__*/React.createElement("div", {
+        className: "flex justify-between text-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-gray-500"
+      }, "\u670D\u52A1\u5F97\u5206"), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium"
+      }, product.serviceScore, "\u5206")), /*#__PURE__*/React.createElement("div", {
+        className: "flex justify-between text-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-gray-500"
+      }, "\u7D20\u6750\u5F97\u5206"), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium"
+      }, product.materialScore, "\u5206")))), /*#__PURE__*/React.createElement("div", {
+        className: "bg-white rounded-lg p-3 border border-gray-100"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-xs text-gray-400 mb-1"
+      }, c.name), /*#__PURE__*/React.createElement("div", {
+        className: "text-[10px] text-gray-400 mb-2"
+      }, c.shop), /*#__PURE__*/React.createElement("div", {
+        className: "text-lg font-bold text-gray-900 mb-2 num"
+      }, "\xA5", c.price.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+        className: "space-y-1.5"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex justify-between text-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-gray-500"
+      }, "\u9500\u91CF"), /*#__PURE__*/React.createElement("span", {
+        className: "font-medium"
+      }, c.sales)), /*#__PURE__*/React.createElement("div", {
+        className: "flex justify-between text-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "text-gray-500"
+      }, "\u4EF7\u683C\u8D8B\u52BF"), /*#__PURE__*/React.createElement("span", {
+        className: `font-medium ${c.trend < 0 ? 'text-green-600' : c.trend > 0 ? 'text-red-500' : 'text-gray-500'}`
+      }, c.trend < 0 ? `↓¥${Math.abs(c.trend)}` : c.trend > 0 ? `↑¥${c.trend}` : '持平')), /*#__PURE__*/React.createElement("div", {
+        className: "flex flex-wrap gap-1 mt-1"
+      }, c.tags.map((t, j) => /*#__PURE__*/React.createElement("span", {
+        key: j,
+        className: "text-xs px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded"
+      }, t))))))));
+    }));
+  }
+  if (activeTab === 'tracks') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-3 gap-3 fade-in"
+    }, product.tracks.map((track, i) => /*#__PURE__*/React.createElement(TrackCardSmall, {
+      key: i,
+      track: track
+    })));
+  }
+  if (activeTab === 'strategies') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-3 gap-4 fade-in"
+    }, product.paths.map((path, i) => /*#__PURE__*/React.createElement(PathCard, {
+      key: path.id,
+      path: path,
+      isRecommended: i === 1
+    })));
+  }
+  if (activeTab === 'simulator') {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "fade-in"
+    }, /*#__PURE__*/React.createElement(PriceSimulator, {
+      product: product
+    }));
+  }
+  return null;
+}
+function ProductCard({
+  product,
+  isSelected,
+  onToggleSelect
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card overflow-hidden mb-4 fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center mb-2 pb-2 border-b border-gray-100",
+    style: { gap: '40px' }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-80 flex-shrink-0"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-medium text-gray-500"
+  }, "\u5546\u54C1")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-w-0"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] font-medium text-gray-500"
+  }, "\u8D5B\u9053\u673A\u4F1A"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start",
+    style: { gap: '40px' }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2.5 w-80 flex-shrink-0"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: isSelected,
+    onChange: () => onToggleSelect(product.id),
+    className: "w-4 h-4 text-red-500 rounded border-gray-300 focus:ring-red-500 flex-shrink-0 mt-0.5"
+  }), /*#__PURE__*/React.createElement("img", {
+    src: product.image,
+    alt: "",
+    className: "w-12 h-12 rounded-lg bg-gray-100 object-cover flex-shrink-0",
+    onError: e => {
+      e.target.style.background = '#f1f5f9';
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "min-w-0"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-gray-700 text-xs leading-snug line-clamp-2"
+  }, product.name), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-gray-400 mt-0.5"
+  }, "\u4E3B\u9500sku-id ", product.idCode), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 mt-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-base text-gray-900 num"
+  }, "\xA5", product.myPrice.toLocaleString())), /*#__PURE__*/React.createElement(PriceAxis, {
+    product: product
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 overflow-x-auto",
+    style: { minWidth: 0 }
+  }, product.paths.map((path, idx) => /*#__PURE__*/React.createElement("div", {
+    key: 'wrap-' + path.id,
+    style: { width: '220px', minWidth: '220px', flexShrink: 0, display: 'flex' }
+  }, /*#__PURE__*/React.createElement(CompactPathCard, {
+    key: path.id,
+    path: path,
+    product: product
+  })))))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 flex items-start gap-2 px-3 py-2.5 bg-orange-50 rounded-lg text-xs border border-orange-100"
+  }, /*#__PURE__*/React.createElement(IconAlert, null), /*#__PURE__*/React.createElement("div", {
+    className: "text-orange-700 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-medium"
+  }, "\u6D41\u91CF\u6D41\u5931\u63D0\u9192\uFF1A"), "\u4EF7\u683C\u9AD8\u4E8E\u540C\u6B3E\u5747\u4EF7", Math.max(0, Math.round((product.myPrice - product.competitors.reduce((s, c) => s + c.price, 0) / product.competitors.length) / (product.competitors.reduce((s, c) => s + c.price, 0) / product.competitors.length) * 100)), "%\uFF0C \u6D41\u5411", product.competitors.length, "\u4E2A\u540C\u884C\u7ADE\u54C1\uFF0C", product.tracks.filter(t => t.status === 'in' || t.status === 'almost').length > 0 ? '命中' + product.tracks.filter(t => t.status === 'in' || t.status === 'almost').length + '个机会赛道。' : '尚未入围任何机会赛道，建议尽快优化。'))));
+}
+const FEED_ITEMS = [{
+  product: 'iPhone 15 Pro Max 256GB 蓝色钛金属',
+  shop: '顺电数码旗舰店',
+  image: 'img-iphone15promax.png',
+  type: 'price',
+  text: '降价了¥100',
+  extra: '降至 ¥9,099，为赛道下最低价',
+  time: '3分钟前'
+}, {
+  product: 'iPhone 15 Pro Max 256GB 国行正品',
+  shop: '天猫Apple官方旗舰店',
+  image: 'img-iphone15promax.png',
+  type: 'service',
+  text: '设置了24期分期免息',
+  extra: '新增金融服务权益',
+  time: '18分钟前'
+}, {
+  product: 'MacBook Pro 14英寸 M3 深空黑 国行',
+  shop: '顺电数码旗舰店',
+  image: 'img-macbookpro-m3.png',
+  type: 'price',
+  text: '降价了¥300',
+  extra: '降至 ¥14,199，进入赛道前3',
+  time: '42分钟前'
+}, {
+  product: 'iPhone 15 Pro Max 256GB 白色钛金属',
+  shop: '迪信通手机专营店',
+  image: 'img-iphone15promax.png',
+  type: 'service',
+  text: '设置了顺丰包邮',
+  extra: '新增物流权益',
+  time: '1小时前'
+}, {
+  product: 'MacBook Pro 14英寸 M3 官方标配',
+  shop: '天猫Apple官方旗舰店',
+  image: 'img-macbookpro-m3.png',
+  type: 'price',
+  text: '降价了¥50',
+  extra: '降至 ¥14,449',
+  time: '1.5小时前'
+}, {
+  product: 'AirPods Pro 2代 USB-C 刻字版',
+  shop: '天猫Apple官方旗舰店',
+  image: 'img-airpods-pro2.png',
+  type: 'service',
+  text: '设置了12期免息',
+  extra: '新增金融服务权益',
+  time: '2小时前'
+}, {
+  product: 'iPhone 15 Pro Max 256GB 蓝色钛金属',
+  shop: '顺电数码旗舰店',
+  image: 'img-iphone15promax.png',
+  type: 'service',
+  text: '设置了顺丰包邮',
+  extra: '新增物流权益',
+  time: '2.5小时前'
+}, {
+  product: 'iPad Pro 11英寸 M4 256G 教育优惠',
+  shop: '天猫Apple官方旗舰店',
+  image: 'img-ipad-pro-m4.png',
+  type: 'price',
+  text: '降价了¥11',
+  extra: '降至 ¥8,588，接近赛道最低价',
+  time: '3小时前'
+}, {
+  product: 'MacBook Pro 14英寸 M3 深空黑 国行',
+  shop: '顺电数码旗舰店',
+  image: 'img-macbookpro-m3.png',
+  type: 'service',
+  text: '设置了12期免息',
+  extra: '新增金融服务权益',
+  time: '4小时前'
+}, {
+  product: 'iPad Pro 11英寸 M4 256G 官方质保',
+  shop: '迪信通手机专营店',
+  image: 'img-ipad-pro-m4.png',
+  type: 'price',
+  text: '降价了¥30',
+  extra: '降至 ¥8,569',
+  time: '5小时前'
+}];
+function TrackingFeed() {
+  var {
+    useEffect,
+    useRef,
+    useCallback
+  } = React;
+  var containerRef = useRef(null);
+  var [paused, setPaused] = useState(false);
+  var [showAddModal, setShowAddModal] = useState(false);
+  var [addInput, setAddInput] = useState('');
+  var [addedList, setAddedList] = useState(['顺电数码旗舰店', '京东Apple自营旗舰店', '拼多多百亿补贴']);
+  useEffect(function () {
+    var el = containerRef.current;
+    if (!el) return;
+    var speed = 0.5;
+    var rafId;
+    function step() {
+      if (!paused) {
+        el.scrollTop += speed;
+        if (el.scrollTop >= el.scrollHeight - el.clientHeight) {
+          el.scrollTop = 0;
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    }
+    rafId = requestAnimationFrame(step);
+    return function () {
+      cancelAnimationFrame(rafId);
+    };
+  }, [paused]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "card p-5 flex flex-col relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-semibold text-gray-900 flex items-center gap-2"
+  }, "\u7ADE\u54C1\u8FFD\u8E2A", /*#__PURE__*/React.createElement("span", {
+    className: "relative flex h-2 w-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "relative inline-flex rounded-full h-2 w-2 bg-green-500"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-normal text-gray-400 ml-1"
+  }, "\u5B9E\u65F6")), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAddModal(!showAddModal);
+    },
+    className: "text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-3 h-3",
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    d: "M12 4v16m8-8H4"
+  })), "\u6DFB\u52A0\u7ADE\u54C1")), showAddModal && /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-14 right-4 z-20 w-72 bg-white rounded-xl shadow-xl border border-gray-200 p-4 fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-semibold text-gray-900"
+  }, "\u6DFB\u52A0\u7ADE\u54C1\u5E97\u94FA"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAddModal(false);
+    },
+    className: "text-gray-400 hover:text-gray-600"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-4 h-4",
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    d: "M6 18L18 6M6 6l12 12"
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 mb-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: addInput,
+    onChange: function (e) {
+      setAddInput(e.target.value);
+    },
+    placeholder: "\u8F93\u5165\u5E97\u94FA\u540D\u79F0\u641C\u7D22",
+    className: "flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      if (addInput.trim()) {
+        setAddedList([addInput.trim()].concat(addedList));
+        setAddInput('');
+      }
+    },
+    className: "text-xs px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex-shrink-0"
+  }, "\u6DFB\u52A0")), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-gray-400 mb-2"
+  }, "\u5DF2\u8FFD\u8E2A (", addedList.length, ")"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5 max-h-36 overflow-y-auto"
+  }, addedList.map(function (name, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "flex items-center justify-between px-2.5 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-xs text-gray-700"
+    }, name), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        setAddedList(addedList.filter(function (_, j) {
+          return j !== i;
+        }));
+      },
+      className: "text-[10px] text-red-400 hover:text-red-600"
+    }, "\u79FB\u9664"));
+  }))), /*#__PURE__*/React.createElement("div", {
+    ref: containerRef,
+    onMouseEnter: function () {
+      setPaused(true);
+    },
+    onMouseLeave: function () {
+      setPaused(false);
+    },
+    className: "flex-1 space-y-2 overflow-hidden",
+    style: {
+      maxHeight: '240px'
+    }
+  }, FEED_ITEMS.concat(FEED_ITEMS).map(function (item, i) {
+    var isPrice = item.type === 'price';
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: 'flex items-start gap-2 p-2 rounded-lg border transition-colors ' + (isPrice ? 'border-red-100 bg-red-50/40' : 'border-blue-100 bg-blue-50/40')
+    }, /*#__PURE__*/React.createElement("img", {
+      src: item.image,
+      alt: "",
+      className: "w-8 h-8 rounded-md bg-gray-100 object-cover flex-shrink-0",
+      onError: function (e) {
+        e.target.style.display = 'none';
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 min-w-0"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] font-semibold text-gray-900 line-clamp-1"
+    }, item.product), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-1.5"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: 'text-[9px] px-1 py-0 rounded font-bold ' + (isPrice ? 'bg-red-500 text-white' : 'bg-blue-500 text-white')
+    }, isPrice ? '降价' : '服务'), /*#__PURE__*/React.createElement("span", {
+      className: 'text-[11px] font-bold ' + (isPrice ? 'text-red-600' : 'text-blue-600')
+    }, item.text)), /*#__PURE__*/React.createElement("div", {
+      className: "text-[10px] text-gray-400"
+    }, item.shop, " \xB7 ", item.time)));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 pt-3 border-t border-gray-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-gray-400 mb-2"
+  }, "\u8BA2\u9605\u63D0\u9192"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-1.5"
+  }, ['竞品降价', '服务策略变动', '新竞品入场'].map(function (tag) {
+    return /*#__PURE__*/React.createElement("span", {
+      key: tag,
+      className: "text-[10px] px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 flex items-center gap-1 cursor-pointer hover:bg-green-100 transition-colors"
+    }, /*#__PURE__*/React.createElement("svg", {
+      className: "w-2.5 h-2.5",
+      fill: "none",
+      stroke: "currentColor",
+      viewBox: "0 0 24 24"
+    }, /*#__PURE__*/React.createElement("path", {
+      strokeWidth: "3",
+      strokeLinecap: "round",
+      d: "M5 13l4 4L19 7"
+    })), tag);
+  }))));
+}
+const TRACK_OVERVIEW = [{
+  key: 'low-price',
+  lossUsers: 276,
+  competitors: 14,
+  desc: '流向价格更低的竞品',
+  products: 18,
+  color: '#ef4444',
+  matchTag: null,
+  matchTrack: ['好价卡', '百亿补贴']
+}, {
+  key: 'installment',
+  lossUsers: 134,
+  competitors: 9,
+  desc: '流向支持分期免息的竞品',
+  products: 12,
+  color: '#3b82f6',
+  matchTag: '免息',
+  matchTrack: ['分期免息']
+}, {
+  key: 'shipping',
+  lossUsers: 96,
+  competitors: 8,
+  desc: '流向支持顺丰包邮的竞品',
+  products: 10,
+  color: '#10b981',
+  matchTag: '顺丰包邮',
+  matchTrack: []
+}];
+function getTrackProducts(track) {
+  return PRODUCTS.map(function (p) {
+    var matchedCompetitors = p.competitors.filter(function (c) {
+      if (track.matchTag) {
+        return c.tags.some(function (t) {
+          return t.indexOf(track.matchTag) >= 0;
+        });
+      }
+      if (track.matchTrack && track.matchTrack.length > 0) {
+        return true;
+      }
+      return false;
+    });
+    if (track.matchTrack && track.matchTrack.length > 0 && !track.matchTag) {
+      matchedCompetitors = p.competitors.filter(function (c) {
+        return c.price < p.myPrice;
+      });
+    }
+    if (matchedCompetitors.length === 0) return null;
+    return {
+      product: p,
+      competitors: matchedCompetitors
+    };
+  }).filter(Boolean);
+}
+function TrackDetailPanel({
+  track,
+  onClose
+}) {
+  var items = getTrackProducts(track);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed right-4 overflow-y-auto p-4 rounded-xl border border-gray-200 bg-white shadow-xl z-20 fade-in",
+    style: { top: '52px', width: '520px', maxHeight: 'calc(100vh - 60px)' }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-2.5 h-2.5 rounded-full",
+    style: {
+      background: track.color
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-semibold text-gray-900"
+  }, track.desc), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-gray-400"
+  }, "\u5171 ", items.length, " \u4E2A\u5546\u54C1\u53D7\u5F71\u54CD")), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded hover:bg-gray-50"
+  }, "\u6536\u8D77")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, items.map(function (item) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: item.product.id,
+      className: "rounded-lg border border-gray-100 overflow-hidden"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3 px-3 py-2.5 bg-blue-50 border-l-4 border-l-blue-500"
+    }, /*#__PURE__*/React.createElement("img", {
+      src: item.product.image,
+      alt: "",
+      className: "w-8 h-8 rounded bg-white object-cover flex-shrink-0 ring-2 ring-blue-200",
+      onError: function (e) {
+        e.target.style.display = 'none';
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 min-w-0"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-xs font-bold text-gray-900 truncate"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-[9px] px-1 py-px rounded bg-blue-500 text-white mr-1"
+    }, "\u672C\u54C1"), item.product.name), /*#__PURE__*/React.createElement("div", {
+      className: "text-[11px] text-gray-500 mt-0.5"
+    }, "\u672C\u5E97\u4EF7 ", /*#__PURE__*/React.createElement("span", {
+      className: "num font-bold text-blue-600"
+    }, '¥' + item.product.myPrice.toLocaleString()))), /*#__PURE__*/React.createElement("span", {
+      className: "text-xs text-gray-400"
+    }, item.competitors.length, " \u4E2A\u7ADE\u54C1")), /*#__PURE__*/React.createElement("div", {
+      className: "divide-y divide-gray-50"
+    }, item.competitors.map(function (c, ci) {
+      var diff = c.price - item.product.myPrice;
+      return /*#__PURE__*/React.createElement("div", {
+        key: ci,
+        className: "flex items-center gap-3 px-3 py-2 hover:bg-gray-50 transition-colors"
+      }, c.image && /*#__PURE__*/React.createElement("img", {
+        src: c.image,
+        alt: "",
+        className: "w-7 h-7 rounded bg-gray-100 object-cover flex-shrink-0",
+        onError: function (e) {
+          e.target.style.display = 'none';
+        }
+      }), /*#__PURE__*/React.createElement("div", {
+        className: "flex-1 min-w-0"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-xs text-gray-700 line-clamp-1"
+      }, c.name), /*#__PURE__*/React.createElement("div", {
+        className: "text-[10px] text-gray-400 mt-0.5"
+      }, c.shop)), /*#__PURE__*/React.createElement("div", {
+        className: "text-right flex-shrink-0"
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "text-xs font-bold text-gray-900 num"
+      }, '¥' + c.price.toLocaleString()), /*#__PURE__*/React.createElement("div", {
+        className: 'text-[10px] num font-medium ' + (diff < 0 ? 'text-green-600' : diff > 0 ? 'text-red-500' : 'text-gray-400')
+      }, diff < 0 ? '低¥' + Math.abs(diff) : diff > 0 ? '高¥' + diff : '同价')));
+    })));
+  })));
+}
+function App() {
+  const [selectedProducts, setSelectedProducts] = useState(new Set());
+  const [expandedTrack, setExpandedTrack] = useState(null);
+  const [showAddCoreModal, setShowAddCoreModal] = useState(false);
+  const [coreInput, setCoreInput] = useState('');
+  const [coreProducts, setCoreProducts] = useState(['Apple iPhone 15 Pro Max 256G', 'MacBook Pro M3 14英寸 16+512G', 'Apple AirPods Pro 第二代 USB-C版', 'Apple iPad Pro 11英寸 M4 256G']);
+  const toggleSelect = id => {
+    const n = new Set(selectedProducts);
+    n.has(id) ? n.delete(id) : n.add(id);
+    setSelectedProducts(n);
+  };
+  const totalLossUsers = PRODUCTS.reduce((s, p) => s + p.lossUsers, 0);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen pb-24"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white/85 backdrop-blur border-b border-gray-200 sticky top-0 z-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto px-6 py-3 flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 text-sm text-gray-500"
+  }, /*#__PURE__*/React.createElement("span", null, "\u5546\u5BB6\u8FD0\u8425\u4E2D\u5FC3"), /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-300"
+  }, "/"), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium text-gray-900"
+  }, "\u7ADE\u4E89\u6D1E\u5BDF")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4 text-sm"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-500"
+  }, "\u767E\u90A6Apple\u6388\u6743\u4E13\u8425\u5E97"), /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-300"
+  }, "|"), /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-400"
+  }, "\u6570\u636E\u66F4\u65B0 2026-05-11 10:00")))), /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto px-6 py-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-6 grid grid-cols-7 gap-4",
+    style: {
+      alignItems: 'stretch'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "col-span-5 card p-5 flex flex-col relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-semibold text-gray-900"
+  }, "\u7ADE\u4E89\u6D1E\u5BDF"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-gray-600"
+  }, "\u5206\u6790\u5E97\u94FA\u5185\u9500\u91CF\u8868\u73B0\u7A81\u51FA\uFF0C\u6216\u5177\u6709\u5E73\u53F0\u7A00\u7F3A\u6027\u7684\u9AD8\u4EF7\u503C\u5546\u54C1\uFF0C\u5EFA\u8BAE\u91CD\u70B9\u8FD0\u8425\uFF0C\u53EF\u6839\u636E\u5E97\u94FA\u8FD0\u8425\u8BA1\u5212\u81EA\u4E3B\u6DFB\u52A0\u5546\u54C1"))), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAddCoreModal(!showAddCoreModal);
+    },
+    className: "text-xs text-blue-500 hover:text-blue-700 flex-shrink-0 ml-3 whitespace-nowrap"
+  }, "\u6DFB\u52A0\u6838\u5FC3\u5546\u54C1 >")), showAddCoreModal && /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-14 right-4 z-20 w-80 bg-white rounded-xl shadow-xl border border-gray-200 p-4 fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-sm font-semibold text-gray-900"
+  }, "\u6DFB\u52A0\u6838\u5FC3\u5546\u54C1"), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      setShowAddCoreModal(false);
+    },
+    className: "text-gray-400 hover:text-gray-600"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-4 h-4",
+    fill: "none",
+    stroke: "currentColor",
+    viewBox: "0 0 24 24"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    d: "M6 18L18 6M6 6l12 12"
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 mb-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: coreInput,
+    onChange: function (e) {
+      setCoreInput(e.target.value);
+    },
+    placeholder: "\u8F93\u5165\u5546\u54C1\u540D\u79F0\u6216ID\u641C\u7D22",
+    className: "flex-1 text-xs px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: function () {
+      if (coreInput.trim()) {
+        setCoreProducts([coreInput.trim()].concat(coreProducts));
+        setCoreInput('');
+      }
+    },
+    className: "text-xs px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex-shrink-0"
+  }, "\u6DFB\u52A0")), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] text-gray-400 mb-2"
+  }, "\u5DF2\u6DFB\u52A0\u6838\u5FC3\u5546\u54C1 (", coreProducts.length, ")"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5 max-h-48 overflow-y-auto"
+  }, coreProducts.map(function (name, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "flex items-center justify-between px-2.5 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-xs text-gray-700 line-clamp-1"
+    }, name), /*#__PURE__*/React.createElement("button", {
+      onClick: function () {
+        setCoreProducts(coreProducts.filter(function (_, j) {
+          return j !== i;
+        }));
+      },
+      className: "text-[10px] text-red-400 hover:text-red-600 flex-shrink-0 ml-2"
+    }, "\u79FB\u9664"));
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-700 leading-relaxed mb-4"
+  }, "\u8FD17\u5929\uFF0C\u5E97\u94FA\u4E2D ", /*#__PURE__*/React.createElement("span", {
+    className: "num font-bold text-gray-900"
+  }, "40"), " \u4E2A\u6838\u5FC3\u5546\u54C1\u7684 ", /*#__PURE__*/React.createElement("span", {
+    className: "num font-bold text-red-500 text-base"
+  }, TRACK_OVERVIEW.reduce(function (s, t) {
+    return s + t.lossUsers;
+  }, 0)), " \u4E2A\u6F5C\u5728\u8BA2\u5355\u6D41\u5411 ", /*#__PURE__*/React.createElement("span", {
+    className: "num font-bold text-red-500 text-base"
+  }, TRACK_OVERVIEW.reduce(function (s, t) {
+    return s + t.competitors;
+  }, 0)), " \u4E2A\u7ADE\u54C1\uFF0C\u4F18\u5316\u540E\u9884\u8BA1\u6D41\u91CF ", /*#__PURE__*/React.createElement("span", {
+    className: "num font-bold text-green-600 text-base"
+  }, "+134%")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 flex-1"
+  }, TRACK_OVERVIEW.map(function (t) {
+    var isActive = expandedTrack === t.key;
+    return /*#__PURE__*/React.createElement("div", {
+      key: t.key,
+      onClick: function () {
+        setExpandedTrack(isActive ? null : t.key);
+      },
+      className: 'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ' + (isActive ? 'border-gray-300 bg-gray-50 shadow-sm' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50')
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "num text-3xl font-extrabold flex-shrink-0",
+      style: {
+        color: t.color
+      }
+    }, t.lossUsers), /*#__PURE__*/React.createElement("div", {
+      className: "flex-1 min-w-0"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-sm font-medium text-gray-800 leading-snug"
+    }, t.desc), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-gray-400 mt-1"
+    }, "\u6D89\u53CA\u5E97\u94FA ", /*#__PURE__*/React.createElement("span", {
+      className: "num font-semibold text-gray-600"
+    }, t.products), " \u4E2A\u5546\u54C1")), /*#__PURE__*/React.createElement("svg", {
+      className: 'w-4 h-4 flex-shrink-0 transition-transform ' + (isActive ? 'rotate-90 text-gray-600' : 'text-gray-300'),
+      fill: "none",
+      stroke: "currentColor",
+      viewBox: "0 0 24 24"
+    }, /*#__PURE__*/React.createElement("path", {
+      strokeWidth: "2",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      d: "M9 5l7 7-7 7"
+    })));
+  })), expandedTrack && /*#__PURE__*/React.createElement(TrackDetailPanel, {
+    track: TRACK_OVERVIEW.find(function (t) {
+      return t.key === expandedTrack;
+    }),
+    onClose: function () {
+      setExpandedTrack(null);
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 pt-3 border-t border-gray-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-6 h-6 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-4 h-4 text-white",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    viewBox: "0 0 24 24"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    d: "M13 10V3L4 14h7v7l9-11h-7z"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-semibold text-gray-900 mb-1"
+  }, "\u8FD0\u8425\u673A\u4F1A"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-900 leading-relaxed mb-1.5"
+  }, "\u8FC7\u53BB7\u5929", /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-green-700"
+  }, "4"), "\u4E2A\u5546\u54C1\u964D\u4EF7\u3001", /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-green-700"
+  }, "6"), "\u4E2A\u5546\u54C1\u5F00\u901A\u5EF6\u957F\u4FDD\u4FEE\uFF0C", /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-green-700"
+  }, "\u6D41\u91CF+19%"), "\uFF0C", /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-green-700"
+  }, "\u6210\u4EA4+4.3%")), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-600 leading-relaxed"
+  }, "\u5F53\u524D\u5E97\u94FA\u5B58\u5728 ", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-red-500"
+  }, "3"), " \u7C7B\u6743\u76CA\u673A\u4F1A\uFF1A\u52A0\u5165 ", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-blue-600"
+  }, "\u597D\u4EF7\u5361"), " \u53EF\u83B7\u5F97\u641C\u7D22\u6D41\u91CF\u52A0\u6743\uFF0C\u9884\u8BA1\u6D41\u91CF\u63D0\u5347 15%~30%\uFF1B\u5F00\u901A ", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-blue-600"
+  }, "\u5206\u671F\u514D\u606F"), " \u53EF\u63D0\u5347\u8F6C\u5316\u7387\uFF0C\u62C9\u52A8\u6210\u4EA4\u6D41\u91CF +8%~12%\uFF1B\u8BBE\u7F6E ", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-blue-600"
+  }, "\u987A\u4E30\u5305\u90AE"), " \u53EF\u63D0\u5347\u5546\u54C1\u66DD\u5149\u6743\u91CD\uFF0C\u5E26\u6765\u66F4\u591A\u81EA\u7136\u6D41\u91CF\u3002\u5EFA\u8BAE\u4F18\u5148\u914D\u7F6E\u4EF7\u683C\u7B56\u7565\uFF0C\u518D\u53E0\u52A0\u6743\u76CA\u653E\u5927\u6D41\u91CF\u6548\u679C\u3002")))))))), /*#__PURE__*/React.createElement("div", {
+    className: "col-span-2 card p-4 flex flex-col"
+  }, /*#__PURE__*/React.createElement(TrackingFeed, null)),   /*#__PURE__*/React.createElement("div", {
+    className: "mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-lg font-semibold text-gray-900"
+  }, "\u6838\u5FC3\u5546\u54C1\u7ADE\u4E89\u5206\u6790")), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-gray-600 mb-3"
+  }, "\u89E3\u8BFB\uFF1A\u5B8C\u6210\u8D5B\u9053\u7B56\u7565\u53EF\u63D0\u5347\u8D5B\u9053\u6392\u540D\uFF0C\u83B7\u53D6\u66F4\u591A\u6D41\u91CF\u4E0E\u66DD\u5149\u3002"), PRODUCTS.map(product => /*#__PURE__*/React.createElement(ProductCard, {
+    key: product.id,
+    product: product,
+    isSelected: selectedProducts.has(product.id),
+    onToggleSelect: toggleSelect
+  }))), selectedProducts.size > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "fixed bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-200 px-6 py-4 flex items-center gap-6 z-50 min-w-[560px]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white"
+  }, /*#__PURE__*/React.createElement(IconCheck, null)), /*#__PURE__*/React.createElement("span", {
+    className: "font-medium text-gray-900"
+  }, "\u5DF2\u9009 ", selectedProducts.size, " \u4E2A\u5546\u54C1")), /*#__PURE__*/React.createElement("div", {
+    className: "h-6 w-px bg-gray-200"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg font-medium"
+  }, "\u6279\u91CF\u6539\u4EF7"), /*#__PURE__*/React.createElement("button", {
+    className: "px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg font-medium"
+  }, "\u6279\u91CF\u987A\u4E30\u5305\u90AE"), /*#__PURE__*/React.createElement("button", {
+    className: "px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded-lg font-medium"
+  }, "\u6279\u91CF\u767E\u4EBF\u8865\u8D34")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSelectedProducts(new Set()),
+    className: "ml-auto text-sm text-gray-400 hover:text-gray-600"
+  }, "\u53D6\u6D88"))));
+}
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));
+
+
+</script>
+</body>
+</html>
