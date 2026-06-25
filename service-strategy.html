@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>服务策略 · 商家运营中心</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f7f8fa;color:#1d2129;font-size:14px;line-height:1.55}
+.topbar{background:#fff;border-bottom:1px solid #e5e6eb;padding:14px 32px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.crumb{color:#86909c}.crumb b{color:#1d2129}
+.shop-meta{color:#86909c}.shop-meta b{color:#1d2129}
+.container{max-width:1320px;margin:0 auto;padding:20px 24px 80px}
+.panel{background:#fff;border:1px solid #e5e6eb;border-radius:8px;padding:20px 24px;margin-bottom:16px}
+
+/* 顶部概览 */
+.ov-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.ov-desc{font-size:12px;color:#86909c;margin-bottom:14px;line-height:1.6}
+.ov-sum{font-size:14px;color:#4e5969;margin-bottom:16px;line-height:1.8}
+.ov-sum .num{color:#f53f3f;font-weight:600;padding:0 2px}
+.ov-sum .lift{color:#00b42a;font-weight:600;padding:0 2px}
+.ov-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.ov-card{border:1px solid #e5e6eb;border-radius:6px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s;background:#fff}
+.ov-card:hover{border-color:#3370ff;box-shadow:0 2px 8px rgba(51,112,255,0.08)}
+.ov-card .big{font-size:28px;font-weight:700;line-height:1}
+.ov-card.red .big{color:#f53f3f}
+.ov-card.blue .big{color:#3370ff}
+.ov-card.green .big{color:#00b42a}
+.ov-card .txt{flex:1;font-size:13px}
+.ov-card .sub{color:#86909c;font-size:12px;margin-top:3px}
+.ov-card .arrow{color:#c9cdd4;font-size:16px}
+
+.tip-box{background:#f2f6ff;border:1px solid #d8e3ff;border-radius:6px;padding:12px 14px;display:flex;gap:10px;font-size:13px;line-height:1.7;color:#4e5969}
+.tip-ico{width:22px;height:22px;background:#3370ff;color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.tip-box .key{color:#3370ff;font-weight:600}
+.tip-box .hl-o{color:#ff7d00;font-weight:600}
+.tip-box .hl-g{color:#00b42a;font-weight:600}
+.tip-title{font-weight:600;color:#1d2129;margin-bottom:3px;font-size:13px}
+
+/* section */
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.sec-num{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;background:#3370ff;color:#fff;border-radius:4px;font-size:12px;font-weight:600}
+.sec-title{font-size:16px;font-weight:600}
+.sec-desc{font-size:12px;color:#86909c;margin-bottom:16px;line-height:1.7}
+.sec-desc b{color:#1d2129}
+
+/* Section1 商品|赛道机会 */
+.prod-row{border:1px solid #e5e6eb;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.prod-row-head{display:grid;grid-template-columns:340px 1fr;background:#fafbfc;border-bottom:1px solid #e5e6eb;padding:10px 16px;font-size:12px;color:#86909c;font-weight:500}
+.prod-row-body{display:grid;grid-template-columns:340px 1fr}
+.prod-info{padding:16px;border-right:1px solid #f2f3f5;display:flex;gap:12px}
+.prod-img{width:60px;height:60px;background:#f2f3f5;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px}
+.prod-meta{flex:1;min-width:0}
+.prod-name{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:3px}
+.prod-sku{color:#86909c;font-size:11px;margin-bottom:8px}
+.prod-price{color:#f53f3f;font-size:18px;font-weight:600;margin-bottom:10px}
+.bench-row{display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:5px}
+.bench-row .lbl{color:#86909c;width:52px;flex-shrink:0}
+.bench-row .bar{flex:1;height:5px;background:#f2f3f5;border-radius:3px}
+.bench-row .bar .fill{height:100%;border-radius:3px}
+.bench-row .bar .fill.g{background:#00b42a}
+.bench-row .bar .fill.gy{background:#c9cdd4}
+.bench-row .bar .fill.r{background:#f53f3f}
+.bench-row .val{font-size:11px;color:#4e5969;min-width:62px;text-align:right}
+.bench-row .me{color:#86909c;margin-left:2px}
+
+.tracks{padding:16px;overflow-x:auto}
+.tracks-inner{display:flex;gap:12px;min-width:max-content}
+.tk-card{width:264px;border:1px solid #e5e6eb;border-radius:6px;background:#fff;display:flex;flex-direction:column;flex-shrink:0}
+.tk-head{padding:10px 12px;border-bottom:1px solid #f2f3f5;display:flex;justify-content:space-between;align-items:center}
+.tk-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tk-tag{font-size:11px;padding:1px 6px;border-radius:3px;font-weight:500}
+.tk-tag.g{background:#e8ffea;color:#00b42a;border:1px solid #aff0b5}
+.tk-tag.o{background:#fff7e8;color:#ff7d00;border:1px solid #ffd591}
+.tk-tag.b{background:#e8f3ff;color:#3370ff;border:1px solid #bedaff}
+.tk-comp{font-size:11px;color:#86909c}
+.tk-body{padding:12px;flex:1;font-size:12px;color:#4e5969;line-height:1.7}
+.tk-body .lift{color:#00b42a;font-weight:600;margin-top:4px;display:block}
+.tk-foot{border-top:1px solid #f2f3f5;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#fafbfc}
+.tk-vs{display:flex;align-items:center;gap:6px;font-size:11px;color:#86909c}
+.tk-vs .vs-badge{background:#fff7e8;color:#ff7d00;font-size:10px;padding:1px 4px;border-radius:2px;font-weight:600}
+.btn-blue{background:#3370ff;color:#fff;border:none;padding:5px 14px;border-radius:4px;font-size:12px;cursor:pointer}
+.btn-blue:hover{background:#1554d8}
+.btn-line{background:#fff;border:1px solid #d8e3ff;color:#3370ff;padding:5px 12px;border-radius:4px;font-size:12px;cursor:pointer}
+.alert-bar{background:#fffbe6;border:1px solid #ffe58f;border-radius:0 0 8px 8px;padding:10px 16px;font-size:12px;color:#4e5969;display:flex;align-items:center;gap:8px;border-top:none}
+.alert-bar .a-ico{color:#ff7d00}
+.alert-bar b{color:#1d2129}
+</style>
+<style>
+/* ===== Section2 前台展示 - 手机三场景 ===== */
+.phones-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.scene-block{border:1px solid #e5e6eb;border-radius:8px;padding:16px}
+.scene-title{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.scene-desc{color:#86909c;font-size:12px;margin-bottom:14px;line-height:1.6;min-height:36px}
+.phones-ba{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ph-wrap{display:flex;flex-direction:column;align-items:center}
+.ph-frame{background:#1d2129;border-radius:18px;padding:5px;width:100%;max-width:165px;box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+.ph-screen{background:#fff;border-radius:14px;overflow:hidden;height:330px;display:flex;flex-direction:column;font-size:9px}
+.ph-label{text-align:center;font-size:11px;font-weight:600;margin-top:8px;padding:2px 8px;border-radius:3px}
+.lbl-b{background:#f2f3f5;color:#86909c}
+.lbl-a{background:#e8f3ff;color:#3370ff}
+.ph-status{height:14px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:8px;color:#1d2129;font-weight:600}
+.ph-sb{margin:4px 6px;height:20px;background:#f2f3f5;border-radius:10px;display:flex;align-items:center;padding:0 8px;font-size:9px;color:#86909c;gap:5px}
+.ph-sb.svc{background:#e8f3ff;color:#3370ff}
+.ph-sb .pill{background:#3370ff;color:#fff;padding:1px 5px;border-radius:6px;font-size:8px;margin-left:auto}
+.ph-tabs{display:flex;padding:0 6px;gap:8px;border-bottom:1px solid #f2f3f5;font-size:9px;color:#4e5969}
+.ph-tabs span{padding:3px 0}
+.ph-tabs span.on{color:#3370ff;border-bottom:2px solid #3370ff;font-weight:600}
+.ph-filter{display:flex;gap:3px;padding:4px 6px;overflow:hidden;border-bottom:1px solid #f2f3f5;font-size:8px}
+.ph-chip{background:#f2f3f5;color:#4e5969;padding:1px 5px;border-radius:7px;white-space:nowrap}
+.ph-chip.hl{background:#e8f3ff;color:#3370ff;border:0.5px solid #bedaff;font-weight:600}
+.ph-list{flex:1;padding:5px 6px;overflow:hidden}
+.ph-item{display:flex;gap:5px;padding:5px 0;border-bottom:0.5px solid #f2f3f5}
+.ph-pic{width:44px;height:44px;background:#f2f3f5;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.ph-meta{flex:1;min-width:0}
+.ph-name{font-size:8px;color:#1d2129;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ph-price{color:#f53f3f;font-weight:600;font-size:10px;margin-top:2px}
+.ph-svcs{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap}
+.ph-st{font-size:7px;padding:0.5px 3px;border-radius:2px;line-height:1.3}
+.ph-st.g{background:#e8ffea;color:#00b42a;border:0.5px solid #aff0b5}
+.ph-st.b{background:#e8f3ff;color:#3370ff;border:0.5px solid #bedaff}
+.ph-st.o{background:#fff7e8;color:#ff7d00;border:0.5px solid #ffd591}
+.ph-sug{padding:4px 10px;font-size:9px;border-bottom:0.5px solid #f2f3f5;color:#4e5969;display:flex;align-items:center;gap:5px}
+.ph-sug .kw{flex:1}
+.ph-mini{font-size:8px;padding:0.5px 4px;border-radius:6px;line-height:1.3}
+.ph-mini.g{background:#e8ffea;color:#00b42a;border:0.5px solid #aff0b5}
+.ph-mini.b{background:#e8f3ff;color:#3370ff;border:0.5px solid #bedaff}
+
+.scene-data{margin-top:12px;background:#fafbfc;border:1px solid #f2f3f5;border-radius:6px;padding:8px 10px;font-size:12px;color:#4e5969;display:flex;align-items:center;gap:6px;line-height:1.6}
+.scene-data .lift{color:#00b42a;font-weight:600}
+
+/* ===== Section3 流量加权 表格 ===== */
+.weight-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.weight-tbl th{background:#fafbfc;color:#86909c;font-weight:500;text-align:left;padding:10px 14px;border-bottom:1px solid #e5e6eb;font-size:12px}
+.weight-tbl td{padding:14px;border-bottom:1px solid #f2f3f5;vertical-align:middle}
+.weight-tbl tr:last-child td{border-bottom:none}
+.weight-tbl tr:hover{background:#fafbfc}
+.svc-name{font-weight:600;color:#1d2129;font-size:13px}
+.svc-mech{color:#86909c;font-size:11px;margin-top:2px}
+.lift-bar{display:flex;align-items:center;gap:8px;min-width:160px}
+.lift-track{flex:1;height:6px;background:#f2f3f5;border-radius:3px;overflow:hidden}
+.lift-fill{height:100%;background:#3370ff;border-radius:3px}
+.lift-val{color:#3370ff;font-weight:600;font-size:12px;white-space:nowrap;min-width:36px}
+.status-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px}
+.status-pill.off{background:#fff1f0;color:#f53f3f}
+.status-pill.partial{background:#fffbe6;color:#d48806}
+.status-pill.on{background:#e8ffea;color:#00b42a}
+.btn-act{background:#fff;border:1px solid #d8e3ff;color:#3370ff;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;white-space:nowrap}
+.btn-act.primary{background:#3370ff;color:#fff;border-color:#3370ff}
+.btn-act.disabled{background:#fafbfc;border-color:#e5e6eb;color:#c9cdd4;cursor:not-allowed}
+
+/* ===== 推荐组合 ===== */
+.combo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.combo-card{border:1px solid #e5e6eb;border-radius:6px;padding:16px;background:#fff;position:relative}
+.combo-card.hot{border-color:#3370ff;background:linear-gradient(180deg,#f2f6ff 0%,#fff 70%)}
+.combo-tag{position:absolute;top:-8px;right:12px;background:#3370ff;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px}
+.combo-name{font-size:14px;font-weight:600;margin-bottom:8px}
+.combo-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.combo-list .tk-tag{font-size:11px}
+.combo-eff{font-size:12px;color:#4e5969;line-height:1.7;margin-bottom:12px}
+.combo-eff b{color:#3370ff;font-size:15px}
+.combo-eff .grn{color:#00b42a}
+.combo-actions{display:flex;gap:6px}
+</style></head><body>
+<div class="topbar">
+  <div class="crumb">商家运营中心 / <b>服务策略</b></div>
+  <div class="shop-meta">百邦Apple授权专营店 | 数据更新 2026-05-11 10:00</div>
+</div>
+
+<div class="container">
+
+  <!-- ===== 顶部总览面板 ===== -->
+  <div class="panel">
+    <div class="ov-title">服务策略</div>
+    <div class="ov-desc">分析店铺服务能力配置，对比同款竞品差异、前台 C 端服务表达、平台流量加权机会，将"服务"转化为可量化的流量与成交增长。</div>
+
+    <div class="ov-sum">
+      近7天，店铺 <span class="num">40</span> 个核心商品中，<span class="num">12</span> 个商品的服务配置弱于竞品，影响 <span class="num">186</span> 个潜在订单，优化后预计流量 <span class="lift">+45%</span>
+    </div>
+
+    <div class="ov-cards">
+      <div class="ov-card red">
+        <div class="big">12</div>
+        <div class="txt">同款竞品多配服务<div class="sub">本店服务配置弱于竞品的核心商品数</div></div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="ov-card blue">
+        <div class="big">3</div>
+        <div class="txt">服务可前台展示的场景<div class="sub">SRP icon / 搜索底纹 / 搜索筛选</div></div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="ov-card green">
+        <div class="big">4</div>
+        <div class="txt">可获流量加权的服务<div class="sub">好价卡 / 24期免息 / 以旧换新 / 延长保修</div></div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-ico">💡</div>
+      <div>
+        <div class="tip-title">运营机会</div>
+        过去7天竞品多配 <span class="hl-o">好价卡 / 24期免息</span> 等服务，预计流向 <span class="key">+186 单</span>。当前店铺存在 <span class="key">3</span> 类服务机会：加入 <span class="hl-o">好价卡</span> 可获得搜索流量加权 <span class="hl-g">+15%~30%</span>；开通 <span class="hl-o">24期免息</span> 可提升高客单转化率 <span class="hl-g">+8%~12%</span>；前置 <span class="hl-o">服务筛选</span> 可拉高商品曝光权重 <span class="hl-g">+22%</span>。建议优先配置服务对标，再叠加前台展示放大流量效果。
+      </div>
+    </div>
+  </div>
+<!-- ===== Section1 同款竞品对标（沿用原站 商品|赛道机会 双栏结构）===== -->
+  <div class="panel">
+    <div class="sec-head"><span class="sec-num">1</span><div class="sec-title">牵引方式 ① · 同款竞品对标</div></div>
+    <div class="sec-desc">解读：聚焦本店核心同款 SKU，对比竞品的服务配置差异。<b>每多 1 项匹配的服务，预计可拉回 8%~15% 的潜在订单。</b></div>
+
+    <!-- 行1：AirPods Pro -->
+    <div class="prod-row">
+      <div class="prod-row-head"><div>商品</div><div>服务对标机会（横向滑动查看更多竞品）</div></div>
+      <div class="prod-row-body">
+        <div class="prod-info">
+          <div class="prod-img">🎧</div>
+          <div class="prod-meta">
+            <div class="prod-name">Apple AirPods Pro 2代 USB-C 主动降噪耳机</div>
+            <div class="prod-sku">主销sku-id 6802831476</div>
+            <div class="prod-price">¥1,699</div>
+            <div class="bench-row"><span class="lbl">本店服务</span><div class="bar"><div class="fill r" style="width:30%"></div></div><span class="val">2项</span></div>
+            <div class="bench-row"><span class="lbl">同款均配</span><div class="bar"><div class="fill gy" style="width:60%"></div></div><span class="val">3.5项</span></div>
+            <div class="bench-row"><span class="lbl">同款最全</span><div class="bar"><div class="fill g" style="width:90%"></div></div><span class="val">5项</span></div>
+          </div>
+        </div>
+        <div class="tracks"><div class="tracks-inner">
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag o">好价卡</span><span class="tk-tag b">12期免息</span></div>
+              <div class="tk-comp">7个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品多配 <b>好价卡 + 12期免息</b>，近7天抢走 <b>38 单</b><span class="lift">↑ 预计流量 +28%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>天猫Apple官方·¥1,599</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag o">好价卡</span><span class="tk-tag g">官方刻字</span></div>
+              <div class="tk-comp">4个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品多配 <b>官方刻字</b> 差异化服务，触达个性化人群<span class="lift">↑ 预计流量 +18%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>京东Apple自营·¥1,649</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag g">顺丰当日达</span></div>
+              <div class="tk-comp">3个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品配置 <b>顺丰当日达</b>，命中"时效赛道"<span class="lift">↑ 预计流量 +12%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>顺电数码·¥1,699</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+        </div></div>
+      </div>
+      <div class="alert-bar"><span class="a-ico">⚠</span> 流量流失提醒：服务配置低于同款均值 <b>43%</b>，流向 <b>7 个</b> 同行竞品，未命中"好价卡"机会赛道，建议尽快补齐。</div>
+    </div>
+
+    <!-- 行2：MacBook Pro -->
+    <div class="prod-row">
+      <div class="prod-row-head"><div>商品</div><div>服务对标机会</div></div>
+      <div class="prod-row-body">
+        <div class="prod-info">
+          <div class="prod-img">💻</div>
+          <div class="prod-meta">
+            <div class="prod-name">MacBook Pro M3 14英寸 16+512G 深空黑</div>
+            <div class="prod-sku">主销sku-id 7835452108</div>
+            <div class="prod-price">¥14,499</div>
+            <div class="bench-row"><span class="lbl">本店服务</span><div class="bar"><div class="fill r" style="width:20%"></div></div><span class="val">1项</span></div>
+            <div class="bench-row"><span class="lbl">同款均配</span><div class="bar"><div class="fill gy" style="width:70%"></div></div><span class="val">4项</span></div>
+            <div class="bench-row"><span class="lbl">同款最全</span><div class="bar"><div class="fill g" style="width:100%"></div></div><span class="val">6项</span></div>
+          </div>
+        </div>
+        <div class="tracks"><div class="tracks-inner">
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag o">好价卡</span><span class="tk-tag b">24期免息</span><span class="tk-tag g">延长保修</span></div>
+              <div class="tk-comp">5个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品多配 <b>3 项核心服务</b>，组合权益让高客单决策更轻<span class="lift">↑ 预计流量 +45%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>顺电数码·¥14,199</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag o">百亿补贴</span><span class="tk-tag b">12期免息</span></div>
+              <div class="tk-comp">4个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品低价 + 免息组合，价格敏感人群成单率高 <b>2.3x</b><span class="lift">↑ 预计流量 +30%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>京东Apple自营·¥13,990</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag g">顺丰包邮</span><span class="tk-tag g">官方质保</span></div>
+              <div class="tk-comp">3个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品强调 <b>履约+保障</b> 双重信任，高客单页停留 +1.8 倍<span class="lift">↑ 预计流量 +20%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>天猫Apple·¥14,299</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+        </div></div>
+      </div>
+      <div class="alert-bar"><span class="a-ico">⚠</span> 流量流失提醒：服务配置低于同款均值 <b>75%</b>，流向 <b>5 个</b> 同行竞品，命中 <b>2 个</b> 机会赛道。</div>
+    </div>
+
+    <!-- 行3：iPhone 15 Pro Max -->
+    <div class="prod-row">
+      <div class="prod-row-head"><div>商品</div><div>服务对标机会</div></div>
+      <div class="prod-row-body">
+        <div class="prod-info">
+          <div class="prod-img">📱</div>
+          <div class="prod-meta">
+            <div class="prod-name">Apple iPhone 15 Pro Max 256G 原色钛金属</div>
+            <div class="prod-sku">主销sku-id 6802831475</div>
+            <div class="prod-price">¥9,199</div>
+            <div class="bench-row"><span class="lbl">本店服务</span><div class="bar"><div class="fill r" style="width:40%"></div></div><span class="val">2项</span></div>
+            <div class="bench-row"><span class="lbl">同款均配</span><div class="bar"><div class="fill gy" style="width:65%"></div></div><span class="val">3项</span></div>
+            <div class="bench-row"><span class="lbl">同款最全</span><div class="bar"><div class="fill g" style="width:95%"></div></div><span class="val">5项</span></div>
+          </div>
+        </div>
+        <div class="tracks"><div class="tracks-inner">
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag o">好价卡</span><span class="tk-tag b">24期免息</span><span class="tk-tag g">以旧换新</span></div>
+              <div class="tk-comp">6个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品命中 <b>以旧换新赛道</b>，触达换机用户精准流量<span class="lift">↑ 预计流量 +22%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>天猫Apple·¥9,099</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+          <div class="tk-card">
+            <div class="tk-head">
+              <div class="tk-tags"><span class="tk-tag g">顺丰当日达</span><span class="tk-tag b">12期免息</span></div>
+              <div class="tk-comp">3个竞品</div>
+            </div>
+            <div class="tk-body">
+              竞品 <b>当日达</b> 时效优势，UV 转化率高 <b>1.5x</b><span class="lift">↑ 预计流量 +15%</span>
+            </div>
+            <div class="tk-foot">
+              <div class="tk-vs"><span class="vs-badge">VS</span>迪信通·¥9,199</div>
+              <button class="btn-blue">一键对标</button>
+            </div>
+          </div>
+
+        </div></div>
+      </div>
+      <div class="alert-bar"><span class="a-ico">⚠</span> 流量流失提醒：服务配置低于同款均值 <b>33%</b>，流向 <b>4 个</b> 同行竞品，命中 <b>1 个</b> 机会赛道。</div>
+    </div>
+
+  </div>
+<!-- ===== Section2 前台应用展示 ===== -->
+  <div class="panel">
+    <div class="sec-head"><span class="sec-num">2</span><div class="sec-title">牵引方式 ② · 前台应用展示</div></div>
+    <div class="sec-desc">解读：服务能力不仅是后台配置，更要在前台 C 端可感知。<b>三类前台场景让消费者在搜索决策链路中即可识别服务优势。</b></div>
+
+    <div class="phones-row">
+
+      <!-- 场景1 -->
+      <div class="scene-block">
+        <div class="scene-title">🏷️ 场景1 · 搜索结果页 Icon</div>
+        <div class="scene-desc">商品卡新增"挂卡"独立一行，绿色服务 icon 与详情页表达完全一致。</div>
+        <div class="phones-ba">
+          <div class="ph-wrap">
+            <div class="ph-frame"><div class="ph-screen">
+              <div class="ph-status"><span>9:41</span><span>5G</span></div>
+              <div class="ph-sb"><span>🔍</span><span>iphone17</span></div>
+              <div class="ph-tabs"><span class="on">综合</span><span>销量</span><span>新品</span><span>价格</span></div>
+              <div class="ph-filter"><span class="ph-chip">品牌</span><span class="ph-chip">价格</span><span class="ph-chip">颜色</span><span class="ph-chip">容量</span></div>
+              <div class="ph-list">
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro Max 256G</div><div class="ph-price">¥9,199</div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro 256G 国行</div><div class="ph-price">¥7,999</div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 128G 全网通</div><div class="ph-price">¥5,999</div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Plus 256G</div><div class="ph-price">¥6,999</div></div></div>
+              </div>
+            </div></div>
+            <div class="ph-label lbl-b">Before · 仅价格</div>
+          </div>
+          <div class="ph-wrap">
+            <div class="ph-frame"><div class="ph-screen">
+              <div class="ph-status"><span>9:41</span><span>5G</span></div>
+              <div class="ph-sb"><span>🔍</span><span>iphone17</span></div>
+              <div class="ph-tabs"><span class="on">综合</span><span>销量</span><span>新品</span><span>价格</span></div>
+              <div class="ph-filter"><span class="ph-chip">品牌</span><span class="ph-chip">价格</span><span class="ph-chip">颜色</span><span class="ph-chip">容量</span></div>
+              <div class="ph-list">
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro Max 256G</div><div class="ph-price">¥9,199</div><div class="ph-svcs"><span class="ph-st g">顺丰</span><span class="ph-st g">24期免息</span><span class="ph-st o">好价卡</span></div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro 256G 国行</div><div class="ph-price">¥7,999</div><div class="ph-svcs"><span class="ph-st g">顺丰</span><span class="ph-st g">12期免息</span></div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 128G 全网通</div><div class="ph-price">¥5,999</div><div class="ph-svcs"><span class="ph-st g">顺丰</span><span class="ph-st o">以旧换新</span></div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Plus 256G</div><div class="ph-price">¥6,999</div><div class="ph-svcs"><span class="ph-st g">12期免息</span></div></div></div>
+              </div>
+            </div></div>
+            <div class="ph-label lbl-a">After · 挂卡服务表达</div>
+          </div>
+        </div>
+        <div class="scene-data">📈 商品点击率 <span class="lift">+15%</span> · 服务人群转化率 <span class="lift">+12%</span></div>
+      </div>
+
+      <!-- 场景2 -->
+      <div class="scene-block">
+        <div class="scene-title">🔍 场景2 · 搜索底纹/猜想词</div>
+        <div class="scene-desc">下拉/历史词中嵌入服务标签，引导用户主动搜索"服务+品类"长尾组合词。</div>
+        <div class="phones-ba">
+          <div class="ph-wrap">
+            <div class="ph-frame"><div class="ph-screen">
+              <div class="ph-status"><span>9:41</span><span>5G</span></div>
+              <div class="ph-sb"><span>🔍</span><span>iphone</span></div>
+              <div style="padding:5px 10px;font-size:9px;color:#86909c;border-bottom:0.5px solid #f2f3f5">猜你想搜</div>
+              <div class="ph-sug"><span class="kw">iphone 17 pro</span></div>
+              <div class="ph-sug"><span class="kw">iphone 16 pro max</span></div>
+              <div class="ph-sug"><span class="kw">iphone 15 国行</span></div>
+              <div class="ph-sug"><span class="kw">iphone 二手</span></div>
+              <div class="ph-sug"><span class="kw">iphone 充电器</span></div>
+              <div class="ph-sug"><span class="kw">iphone 手机壳</span></div>
+              <div class="ph-sug"><span class="kw">iphone 数据线</span></div>
+              <div class="ph-sug"><span class="kw">iphone 钢化膜</span></div>
+            </div></div>
+            <div class="ph-label lbl-b">Before · 纯品类词</div>
+          </div>
+          <div class="ph-wrap">
+            <div class="ph-frame"><div class="ph-screen">
+              <div class="ph-status"><span>9:41</span><span>5G</span></div>
+              <div class="ph-sb svc"><span>🔍</span><span>iphone</span><span class="pill">服务</span></div>
+              <div style="padding:5px 10px;font-size:9px;color:#86909c;border-bottom:0.5px solid #f2f3f5">猜你想搜 · 含服务</div>
+              <div class="ph-sug"><span class="kw">iphone 17 pro</span><span class="ph-mini b">好价卡</span></div>
+              <div class="ph-sug"><span class="kw">iphone 16 pro max</span><span class="ph-mini b">24期免息</span></div>
+              <div class="ph-sug"><span class="kw">iphone 15 以旧换新</span><span class="ph-mini g">服务</span></div>
+              <div class="ph-sug"><span class="kw">iphone 顺丰当日达</span><span class="ph-mini g">服务</span></div>
+              <div class="ph-sug"><span class="kw">iphone 国行 12期免息</span><span class="ph-mini g">服务</span></div>
+              <div class="ph-sug"><span class="kw">iphone 官方刻字</span><span class="ph-mini g">服务</span></div>
+              <div class="ph-sug"><span class="kw">iphone 延长保修</span><span class="ph-mini g">服务</span></div>
+              <div class="ph-sug"><span class="kw">iphone 7天无理由</span><span class="ph-mini g">服务</span></div>
+            </div></div>
+            <div class="ph-label lbl-a">After · 服务底纹引流</div>
+          </div>
+        </div>
+        <div class="scene-data">📈 长尾词搜索量 <span class="lift">+5.2倍</span> · 进店UV <span class="lift">+38%</span></div>
+      </div>
+
+      <!-- 场景3 -->
+      <div class="scene-block">
+        <div class="scene-title">🎛️ 场景3 · 搜索筛选项</div>
+        <div class="scene-desc">前置"服务/物流"筛选 chip 至首位，让消费者按服务诉求快速过滤候选商品。</div>
+        <div class="phones-ba">
+          <div class="ph-wrap">
+            <div class="ph-frame"><div class="ph-screen">
+              <div class="ph-status"><span>9:41</span><span>5G</span></div>
+              <div class="ph-sb"><span>🔍</span><span>iphone17</span></div>
+              <div class="ph-tabs"><span class="on">综合</span><span>销量</span><span>新品</span><span>价格</span></div>
+              <div class="ph-filter"><span class="ph-chip">品牌</span><span class="ph-chip">价格</span><span class="ph-chip">颜色</span><span class="ph-chip">容量</span></div>
+              <div class="ph-list">
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro Max</div><div class="ph-price">¥9,199</div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro 256G</div><div class="ph-price">¥7,999</div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 128G</div><div class="ph-price">¥5,999</div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Plus</div><div class="ph-price">¥6,999</div></div></div>
+              </div>
+            </div></div>
+            <div class="ph-label lbl-b">Before · 仅属性筛选</div>
+          </div>
+          <div class="ph-wrap">
+            <div class="ph-frame"><div class="ph-screen">
+              <div class="ph-status"><span>9:41</span><span>5G</span></div>
+              <div class="ph-sb"><span>🔍</span><span>iphone17</span></div>
+              <div class="ph-tabs"><span class="on">综合</span><span>销量</span><span>新品</span><span>价格</span></div>
+              <div class="ph-filter"><span class="ph-chip hl">服务 ▾</span><span class="ph-chip hl">好价卡</span><span class="ph-chip">品牌</span><span class="ph-chip">价格</span></div>
+              <div class="ph-list">
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro Max 256G</div><div class="ph-price">¥9,199</div><div class="ph-svcs"><span class="ph-st o">好价卡</span><span class="ph-st g">24期</span></div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Pro 256G</div><div class="ph-price">¥7,999</div><div class="ph-svcs"><span class="ph-st o">好价卡</span><span class="ph-st g">12期</span></div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 128G</div><div class="ph-price">¥5,999</div><div class="ph-svcs"><span class="ph-st o">好价卡</span></div></div></div>
+                <div class="ph-item"><div class="ph-pic">📱</div><div class="ph-meta"><div class="ph-name">Apple iPhone 17 Plus</div><div class="ph-price">¥6,999</div><div class="ph-svcs"><span class="ph-st o">好价卡</span></div></div></div>
+              </div>
+            </div></div>
+            <div class="ph-label lbl-a">After · 服务筛选前置</div>
+          </div>
+        </div>
+        <div class="scene-data">📈 筛选使用率 <span class="lift">+220%</span> · 命中服务商品曝光 <span class="lift">+22%</span></div>
+      </div>
+
+    </div>
+  </div>
+<!-- ===== Section3 流量加权 ===== -->
+  <div class="panel">
+    <div class="sec-head"><span class="sec-num">3</span><div class="sec-title">牵引方式 ③ · 流量加权机会</div></div>
+    <div class="sec-desc">解读：参与平台官方服务后，商品在 SRP / 频道页将获得算法权重加成。<b>开通即享流量倾斜，无需额外投放成本。</b></div>
+
+    <table class="weight-tbl">
+      <thead>
+        <tr>
+          <th style="width:200px">服务项</th>
+          <th>加权机制</th>
+          <th style="width:200px">预计流量提升</th>
+          <th style="width:120px">当前状态</th>
+          <th style="width:160px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="svc-name">⭐ 好价卡</div>
+            <div class="svc-mech">价保 + 同款比价权益</div>
+          </td>
+          <td><div style="color:#4e5969">SRP 综合排序权重 +15%~30%，命中"好价卡"专属赛道</div></td>
+          <td><div class="lift-bar"><div class="lift-track"><div class="lift-fill" style="width:90%"></div></div><div class="lift-val">+30%</div></div></td>
+          <td><span class="status-pill off">● 未开通</span></td>
+          <td><button class="btn-act primary">立即开通</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="svc-name">💳 24期分期免息</div>
+            <div class="svc-mech">高客单类目限定权益</div>
+          </td>
+          <td><div style="color:#4e5969">SRP 默认排序 +8%~12%，命中"免息赛道"曝光位</div></td>
+          <td><div class="lift-bar"><div class="lift-track"><div class="lift-fill" style="width:40%"></div></div><div class="lift-val">+12%</div></div></td>
+          <td><span class="status-pill partial">● 部分开通</span></td>
+          <td><button class="btn-act primary">扩大覆盖</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="svc-name">♻️ 以旧换新</div>
+            <div class="svc-mech">3C 数码类目专属赛道</div>
+          </td>
+          <td><div style="color:#4e5969">命中"换机人群"定向流量，进店UV +20%~35%</div></td>
+          <td><div class="lift-bar"><div class="lift-track"><div class="lift-fill" style="width:80%"></div></div><div class="lift-val">+25%</div></div></td>
+          <td><span class="status-pill off">● 未开通</span></td>
+          <td><button class="btn-act primary">立即开通</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="svc-name">🛡️ 延长保修</div>
+            <div class="svc-mech">官方质保 +1 年/2 年</div>
+          </td>
+          <td><div style="color:#4e5969">详情页停留时长 +18%，转化率 +6%~10%</div></td>
+          <td><div class="lift-bar"><div class="lift-track"><div class="lift-fill" style="width:35%"></div></div><div class="lift-val">+10%</div></div></td>
+          <td><span class="status-pill partial">● 部分开通</span></td>
+          <td><button class="btn-act primary">扩大覆盖</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="svc-name">🚚 顺丰包邮 / 当日达</div>
+            <div class="svc-mech">物流时效履约</div>
+          </td>
+          <td><div style="color:#4e5969">命中"时效赛道"加权，搜索排序权重 +5%~8%</div></td>
+          <td><div class="lift-bar"><div class="lift-track"><div class="lift-fill" style="width:25%"></div></div><div class="lift-val">+8%</div></div></td>
+          <td><span class="status-pill on">● 已开通</span></td>
+          <td><button class="btn-act disabled">已开通</button></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="svc-name">📝 官方刻字</div>
+            <div class="svc-mech">差异化定制服务</div>
+          </td>
+          <td><div style="color:#4e5969">触达"个性化人群"，客单价 +12%</div></td>
+          <td><div class="lift-bar"><div class="lift-track"><div class="lift-fill" style="width:30%"></div></div><div class="lift-val">+9%</div></div></td>
+          <td><span class="status-pill off">● 未开通</span></td>
+          <td><button class="btn-act">了解详情</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== Section4 智能推荐组合 ===== -->
+  <div class="panel">
+    <div class="sec-head"><span class="sec-num">4</span><div class="sec-title">智能推荐 · 服务策略组合包</div></div>
+    <div class="sec-desc">结合本店核心 SKU、竞品对标差距与赛道机会，AI 为你打包了 3 套服务组合，一键应用到对应商品。</div>
+
+    <div class="combo-row">
+      <div class="combo-card hot">
+        <div class="combo-tag">推荐</div>
+        <div class="combo-name">🎯 高客单冲销组合</div>
+        <div class="combo-list">
+          <span class="tk-tag o">好价卡</span>
+          <span class="tk-tag b">24期免息</span>
+          <span class="tk-tag g">延长保修</span>
+        </div>
+        <div class="combo-eff">
+          适用：MacBook / iPhone Pro 系列<br>
+          预计流量 <b>+45%</b> · 转化率 <span class="grn">+12%</span> · GMV <span class="grn">+62.8万/月</span>
+        </div>
+        <div class="combo-actions">
+          <button class="btn-blue">一键应用 (8 SKU)</button>
+          <button class="btn-line">查看明细</button>
+        </div>
+      </div>
+
+      <div class="combo-card">
+        <div class="combo-name">⚡ 换机人群引流组合</div>
+        <div class="combo-list">
+          <span class="tk-tag g">以旧换新</span>
+          <span class="tk-tag b">12期免息</span>
+          <span class="tk-tag g">顺丰当日达</span>
+        </div>
+        <div class="combo-eff">
+          适用：iPhone 全系列 / iPad<br>
+          预计进店UV <b>+38%</b> · 转化率 <span class="grn">+9%</span> · GMV <span class="grn">+24.5万/月</span>
+        </div>
+        <div class="combo-actions">
+          <button class="btn-blue">一键应用 (15 SKU)</button>
+          <button class="btn-line">查看明细</button>
+        </div>
+      </div>
+
+      <div class="combo-card">
+        <div class="combo-name">💎 差异化定制组合</div>
+        <div class="combo-list">
+          <span class="tk-tag g">官方刻字</span>
+          <span class="tk-tag g">7天无理由</span>
+          <span class="tk-tag g">官方质保</span>
+        </div>
+        <div class="combo-eff">
+          适用：AirPods / Apple Watch<br>
+          客单价 <b>+12%</b> · 详情页停留 <span class="grn">+1.8x</span> · GMV <span class="grn">+8.6万/月</span>
+        </div>
+        <div class="combo-actions">
+          <button class="btn-blue">一键应用 (6 SKU)</button>
+          <button class="btn-line">查看明细</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body></html>
